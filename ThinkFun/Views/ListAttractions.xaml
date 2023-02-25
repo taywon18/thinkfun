@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ThinkFun.Views.ListAttractions"
+             Title="Liste des attractions">
+    <StackLayout 
+        Padding="20"
+        Orientation="Vertical">
+        <StackLayout HorizontalOptions="Center" Orientation="Horizontal">
+            <Button Text="Par distance"/>
+            <Button Text="Par temps d'attente"/>
+            <Button Text="Intelligent"/>
+        </StackLayout>
+
+        <ListView
+            x:Name="AttractionList"
+            HorizontalOptions="Fill"
+            HasUnevenRows="True"
+            BackgroundColor="AliceBlue"
+            >
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <Grid Padding="10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="8*" />
+                                <ColumnDefinition Width="2*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Label 
+                                Grid.ColumnSpan="2"
+                                Text="{Binding Name}"
+                                FontSize="Medium"
+                                Margin="5, 0, 5, 0"/>
+
+                            <StackLayout 
+                                Orientation="Horizontal"
+                                HorizontalOptions="End"
+                                Grid.Column="2">
+                                <ImageButton Grid.RowSpan="1"
+                                    Source="location.png"
+                                    Aspect="AspectFill"
+                                    HeightRequest="30"
+                                    WidthRequest="30" />
+                                <ImageButton Grid.RowSpan="1"
+                                    Source="location.png"
+                                    Aspect="AspectFill"
+                                    HeightRequest="30"
+                                    WidthRequest="30" />
+                            </StackLayout>
+
+                            <ImageButton 
+                                Grid.Row="1"
+                                Grid.RowSpan="2"
+                                Source="location.png"
+                                Aspect="AspectFill"
+                                HeightRequest="60"
+                                WidthRequest="60" />
+
+                            <Label
+                                Grid.Column="1"
+                                Grid.Row="1"
+                                FontAttributes="Bold"
+                                Text="{Binding WaitingTime}"/>
+
+                            <Label
+                                Grid.Column="1"
+                                Grid.Row="2"
+                                Text="{Binding Distance}"
+                                FontAttributes="Italic"/>
+
+                            <StackLayout 
+                                Orientation="Horizontal"
+                                Grid.Row="2"
+                                Grid.Column="2">
+                                
+                                <ImageButton Grid.RowSpan="1"
+                                    Source="location.png"
+                                    Aspect="AspectFill"
+                                    HeightRequest="30"
+                                    WidthRequest="30" />
+                                <ImageButton Grid.RowSpan="1"
+                                    Source="location.png"
+                                    Aspect="AspectFill"
+                                    HeightRequest="30"
+                                    WidthRequest="30" />
+                            </StackLayout>
+                        </Grid>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <StackLayout HorizontalOptions="Center" Orientation="Horizontal">
+            <Button Text="Parcs"/>
+            <Button Text="Attractions"/>
+            <Button Text="Restaurants"/>
+            <Button Text="Autres"/>
+        </StackLayout>
+    </StackLayout>
+</ContentPage>

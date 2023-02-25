@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ThinkFun.Views.ParkChoice"
+             Title="Accueil">
+    <StackLayout 
+        Orientation="Vertical">
+        
+        <Image
+            Source="dotnet_bot.png"
+            HeightRequest="200"
+            HorizontalOptions="Center" />
+
+        <StackLayout
+            Orientation="Horizontal">
+            <Entry 
+                x:Name="entry"
+                Placeholder="Rechercher un parc..."
+                HorizontalOptions="FillAndExpand"/>
+
+            <!-- <Image Source="location.png" HeightRequest="60"/> -->
+        </StackLayout>
+
+        <ListView
+            x:Name="ParkList"
+            HorizontalOptions="Fill"
+            BackgroundColor="AliceBlue"
+            HasUnevenRows="True">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <Grid Padding="10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="8*" />
+                                <ColumnDefinition Width="2*" />
+                            </Grid.ColumnDefinitions>
+                            <Image 
+                                HorizontalOptions="Start"
+                                Grid.RowSpan="1"
+                                Source="location.png"
+                                Aspect="AspectFill"
+                                HeightRequest="60"
+                                WidthRequest="60" />
+                            
+                            <Label Grid.Column="1"
+                                Text="{Binding Name}"
+                                Margin="5, 0, 5, 0"
+                                FontAttributes="Bold"
+                                FontSize="Medium"
+                                VerticalTextAlignment="Center"/>
+                            <Label 
+                                Grid.Column="2"
+                                Text="{Binding Distance}"
+                                FontAttributes="Italic"
+                                Margin="5, 0, 5, 0"
+                                VerticalOptions="Start" 
+                                HorizontalTextAlignment="End"/>
+                        </Grid>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </StackLayout>
+</ContentPage>

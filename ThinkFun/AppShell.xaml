@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="ThinkFun.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:ThinkFun"
+    xmlns:views="clr-namespace:ThinkFun.Views">
+
+    <FlyoutItem Title="Liste des attractions"
+                >
+        <Tab>
+            <ShellContent ContentTemplate="{DataTemplate views:ListAttractions}" />
+        </Tab>
+    </FlyoutItem>
+    <FlyoutItem Title="Accueil"
+                >
+        <Tab>
+            <ShellContent ContentTemplate="{DataTemplate views:ParkChoice}" />
+        </Tab>
+    </FlyoutItem>
+</Shell>
