@@ -4,18 +4,26 @@ namespace ThinkFun.Views;
 
 public partial class ListAttractions : ContentPage
 {
-	public class Attraction
-	{
-		public string Name { get; set; } = "";
-		public string WaitingTime { get; set; } = "";
-		public string Distance { get; set; } = "";
-	}
+    public class Attraction
+    {
+        public string Name { get; set; } = "";
+        public string WaitingTime { get; set; } = "";
+        public string Distance { get; set; } = "";
+    }
 
     ObservableCollection<Attraction> Attractions = new ObservableCollection<Attraction>();
 
     public ListAttractions()
-	{
-		InitializeComponent();
+    {
+        InitializeComponent();
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+
+        AttractionList.IsRefreshing = true;
 
         Attractions.Add(new Attraction
         {
@@ -29,9 +37,10 @@ public partial class ListAttractions : ContentPage
             Distance = "Disneyland Paris (200m)",
             WaitingTime = "25min"
         });
-
-
-
         AttractionList.ItemsSource = Attractions;
+
+
+        AttractionList.IsRefreshing = false;
+
     }
 }

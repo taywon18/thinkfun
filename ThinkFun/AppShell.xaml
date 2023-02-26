@@ -6,16 +6,14 @@
     xmlns:local="clr-namespace:ThinkFun"
     xmlns:views="clr-namespace:ThinkFun.Views">
 
-    <FlyoutItem Title="Liste des attractions"
-                >
-        <Tab>
-            <ShellContent ContentTemplate="{DataTemplate views:ListAttractions}" />
-        </Tab>
-    </FlyoutItem>
-    <FlyoutItem Title="Accueil"
-                >
-        <Tab>
-            <ShellContent ContentTemplate="{DataTemplate views:ParkChoice}" />
-        </Tab>
-    </FlyoutItem>
+
+    <ShellContent 
+                Title="Accueil"
+                ContentTemplate="{DataTemplate views:ParkChoice}"
+                />
+    <ShellContent 
+                Title="Liste des attractions"
+                IsVisible="{Binding HaveDestination}"
+                ContentTemplate="{DataTemplate views:ListAttractions}"
+                />
 </Shell>

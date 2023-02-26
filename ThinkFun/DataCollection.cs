@@ -5,22 +5,50 @@ namespace ThinkFun;
 
 public class DataCollection
 {
-    public List<Destination> AllDestinations = new List<Destination>();
+    List<Destination> AllDestinations = null;
     HttpClient Client;
+
+    public List<Destination> BufferedDestination
+    {
+        get
+        {
+            if (AllDestinations == null)
+                return new List<Destination>();
+            
+            List<Destination> ret;
+            lock (AllDestinations)
+                ret = new List<Destination>(AllDestinations);
+
+            return ret;
+        }
+    }
+
+    public async Task<List<Destination>> GetDestinations(CancellationToken tk = default)
+    {
+        while (BufferedDestination.Count == 0 )
+        {
+            await Flush(tk);
+
+            if (tk.IsCancellationRequested)
+                return BufferedDestination;
+        }
+
+        return BufferedDestination;
+    }
 
     public DataCollection() 
     {
         Client = new()
         {
-            BaseAddress = new Uri("https://localhost:7035/")
+            BaseAddress = new Uri("http://192.168.1.156:5000/")
         };
     }
 
-    public async Task Flush()
+    public async Task Flush(CancellationToken tk = default)
     {
         try
         {
-            await FlushDestinations();
+            await FlushDestinations(tk);
         }
         catch(Exception ex)
         {
@@ -30,13 +58,6 @@ public class DataCollection
 
     public async Task FlushDestinations(CancellationToken tk = default)
     {
-
-        var dest = await Client.GetFromJsonAsync<List<Destination>>("Data/GetDestinations", tk);
-
-        lock (AllDestinations)
-        {
-            AllDestinations.Clear();
-            AllDestinations.AddRange(dest);
-        }
+        AllDestinations = await Client.GetFromJsonAsync<List<Destination>>("Data/GetDestinations", tk);
     }
 }
