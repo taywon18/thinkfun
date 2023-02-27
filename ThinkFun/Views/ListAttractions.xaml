@@ -35,7 +35,7 @@
 
                             <Label 
                                 Grid.ColumnSpan="2"
-                                Text="{Binding Name}"
+                                Text="{Binding NameDisplayable}"
                                 FontSize="Medium"
                                 Margin="5, 0, 5, 0"/>
 
@@ -67,12 +67,12 @@
                                 Grid.Column="1"
                                 Grid.Row="1"
                                 FontAttributes="Bold"
-                                Text="{Binding WaitingTime}"/>
+                                Text="{Binding StatusDisplayable}"/>
 
                             <Label
                                 Grid.Column="1"
                                 Grid.Row="2"
-                                Text="{Binding Distance}"
+                                Text="{Binding DescriptionDisplayable}"
                                 FontAttributes="Italic"/>
 
                             <StackLayout 

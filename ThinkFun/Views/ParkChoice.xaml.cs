@@ -25,7 +25,7 @@ public partial class ParkChoice : ContentPage
         base.OnAppearing();
         ParkList.IsRefreshing = true;
 
-		var destinations = await DataManager.Instance.Data.GetDestinations();
+		var destinations = await DataManager.Instance.GetDestinations();
         var currentPosition = await LocationManager.Instance.GetPositionAsync();
 
 		List<Destination> destinationlist = new();

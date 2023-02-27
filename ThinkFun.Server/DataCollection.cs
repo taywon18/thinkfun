@@ -111,6 +111,7 @@ public class DataCollection
             else
                 collection = new HashSet<Park>();
 
+            collection.Remove(value);
             collection.Add(value);
 
             if(!keyExists)
@@ -133,6 +134,7 @@ public class DataCollection
             else
                 collection = new HashSet<ParkElement>();
 
+            collection.Remove(value);
             collection.Add(value);
 
             if (!keyExists)
@@ -155,6 +157,7 @@ public class DataCollection
             else
                 collection = new HashSet<LiveData>();
 
+            collection.Remove(value);
             collection.Add(value);
 
             if (!keyExists)
