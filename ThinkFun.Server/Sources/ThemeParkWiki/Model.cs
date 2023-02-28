@@ -70,7 +70,7 @@ public class LiveDataQueue
 
 public class LiveDataQueueList
 {
-    public LiveDataQueue? STAND_BY { get; set; }
+    public LiveDataQueue? STANDBY { get; set; }
     public LiveDataQueue? SINGLE_RIDER { get; set; }
     public LiveDataPayingQueue? PAID_RETURN_TIME { get; set; }
     

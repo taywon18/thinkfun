@@ -162,8 +162,8 @@ public class ThemeParkWikiSource
 
                 if (livedata.queue != null)
                 {
-                    if (livedata.queue.STAND_BY != null && livedata.queue.STAND_BY.waitTime != null)
-                        livedata_model.ClassicWaitTime = TimeSpan.FromMinutes(livedata.queue.STAND_BY.waitTime.Value);
+                    if (livedata.queue.STANDBY != null && livedata.queue.STANDBY.waitTime != null)
+                        livedata_model.ClassicWaitTime = TimeSpan.FromMinutes(livedata.queue.STANDBY.waitTime.Value);
 
                     if (livedata.queue.SINGLE_RIDER != null && livedata.queue.SINGLE_RIDER.waitTime != null)
                         livedata_model.SingleRiderWaitTime = TimeSpan.FromMinutes(livedata.queue.SINGLE_RIDER.waitTime.Value);

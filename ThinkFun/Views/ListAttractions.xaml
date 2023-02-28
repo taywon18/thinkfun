@@ -98,10 +98,35 @@
         </ListView>
 
         <StackLayout HorizontalOptions="Center" Orientation="Horizontal">
-            <Button Text="Parcs"/>
-            <Button Text="Attractions"/>
-            <Button Text="Restaurants"/>
-            <Button Text="Autres"/>
+            <Picker x:Name="TypePicker"
+                Title="Par type"
+                SelectedIndex="{Binding FilterType}"
+                SelectedIndexChanged="TypePicker_SelectedIndexChanged">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Tous</x:String>
+                        <x:String>Attraction</x:String>
+                        <x:String>Show</x:String>
+                        <x:String>Restaurant</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
+            <Picker x:Name="ParkPicker"
+                Title="Par parc">
+            </Picker>
+            <Picker x:Name="StatusPicker"
+                Title="Par ouverture"
+                SelectedIndex="{Binding FilterStatus}"
+                SelectedIndexChanged="TypePicker_SelectedIndexChanged">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Tous</x:String>
+                        <x:String>Ouverts et cassés</x:String>
+                        <x:String>Ouverts seulement</x:String>
+                        <x:String>Fermés et cassés</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
         </StackLayout>
     </StackLayout>
 </ContentPage>
