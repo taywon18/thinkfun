@@ -7,6 +7,7 @@ public class LocationManager
     public static LocationManager Instance { get; } = new LocationManager();
 
     public bool Allowed = false;
+    private Mutex Mutex; //= new Mutex();
 
     private LocationManager()
     {
@@ -15,10 +16,16 @@ public class LocationManager
 
     public async Task<GeolocatorPlugin.Abstractions.Position?> GetPositionAsync()
     {
-        if (!await EnsureAllowed())
-            return null;
+        Mutex?.WaitOne();
 
-        return await CrossGeolocator.Current.GetPositionAsync();
+        if (!await EnsureAllowed())
+        {
+            Mutex?.ReleaseMutex();
+            return null;
+        }
+
+        Mutex?.ReleaseMutex();
+        return await CrossGeolocator.Current.GetPositionAsync(TimeSpan.FromSeconds(2));
     }
 
     public async Task<bool> EnsureAllowed()

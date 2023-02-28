@@ -16,7 +16,6 @@ public partial class ParkChoice : ContentPage
     public ParkChoice()
 	{
 		InitializeComponent();
-
 		ParkList.ItemsSource = Destinations;
 	}
 

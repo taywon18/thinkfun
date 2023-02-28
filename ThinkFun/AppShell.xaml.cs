@@ -18,6 +18,11 @@ namespace ThinkFun
             Routing.RegisterRoute("//Attractions", typeof(ListAttractions));
         }
 
+        protected override async void OnAppearing()
+        {
+            await GoToAsync("//Attractions");
+        }
+
         public void FlushDestination()
         {
             OnPropertyChanged(nameof(HaveDestination));

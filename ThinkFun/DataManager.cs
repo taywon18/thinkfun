@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Net.Http.Json;
+using System.Text.Json;
 using ThinkFun.Model;
 
 namespace ThinkFun;
@@ -9,13 +10,22 @@ public class DataManager
     public static DataManager Instance = new DataManager();
 
     HttpClient Client;
+    public Configuration Configuration { get; private set; }
 
     List<Destination> AllDestinations = null;
     List<Park> Parks { get; } = new List<Park>();
     List<ParkElement> Elements { get; } = new List<ParkElement>();
     List<LiveData> LiveDatas { get; } = new List<LiveData>();
+    IDispatcherTimer UpdateTime, SaveConfigTimer;
 
-    private string? DestinationId = null;
+    public string DestinationId
+    {
+        get { return Configuration.Destination; }
+        set { 
+            Configuration.Destination = value;
+            SaveConfig();
+        }
+    }
 
     public bool HasDestination
     {
@@ -107,11 +117,40 @@ public class DataManager
             BaseAddress = new Uri("http://192.168.1.156:5000/")
         };
 
-        var timer = Application.Current.Dispatcher.CreateTimer();
-        timer.Interval = TimeSpan.FromSeconds(15);
-        timer.Tick += async (s, e) => await Update();
-        timer.IsRepeating = true;
-        timer.Start();
+        LoadConfig();
+
+        UpdateTime = Application.Current.Dispatcher.CreateTimer();
+        UpdateTime.Interval = TimeSpan.FromSeconds(15);
+        UpdateTime.Tick += async (s, e) => await Update();
+        UpdateTime.IsRepeating = true;
+        UpdateTime.Start();
+    }
+
+    private void LoadConfig()
+    {
+        string path = Path.Combine(FileSystem.Current.AppDataDirectory, "thinkfun.json");
+        try
+        {
+            Configuration = JsonSerializer.Deserialize<Configuration>(File.ReadAllText(path));
+            if (Configuration == null)
+                throw new Exception();
+        }catch(Exception ex)
+        {
+            Configuration = new Configuration();
+        }
+    }
+
+    public void SaveConfig()
+    {
+        string path = Path.Combine(FileSystem.Current.AppDataDirectory, "thinkfun.json");
+        try
+        {
+            File.WriteAllText(path, JsonSerializer.Serialize(Configuration));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
     }
 
     public async Task<List<Destination>> GetDestinations(CancellationToken tk = default)
