@@ -17,6 +17,8 @@ public class DataManager
     List<ParkElement> Elements { get; } = new List<ParkElement>();
     List<LiveData> LiveDatas { get; } = new List<LiveData>();
     IDispatcherTimer UpdateTime, SaveConfigTimer;
+    SemaphoreSlim UpdateLiveDataSemaphore = new SemaphoreSlim(1);
+    SemaphoreSlim UpdateStaticDataSemaphore = new SemaphoreSlim(1);
 
     public string DestinationId
     {
@@ -65,6 +67,7 @@ public class DataManager
         }
     }
 
+    DateTime LastStaticUpdate = default;
     public List<ParkElement> BufferedElements
     {
         get
@@ -80,6 +83,18 @@ public class DataManager
         }
     }
 
+    public async Task<List<ParkElement>> GetStaticDataBuffered(TimeSpan maxLive = default)
+    {
+        if (maxLive == default)
+            maxLive = TimeSpan.FromMinutes(30);
+
+        if (LastLiveUpdate == default || DateTime.Now - LastStaticUpdate > maxLive)
+            await UpdateStaticData();
+
+        return BufferedElements;
+    }
+
+    DateTime LastLiveUpdate = default;
     public Dictionary<string, LiveData> BufferedLiveDatas
     {
         get
@@ -94,6 +109,17 @@ public class DataManager
 
             return ret;
         }
+    }
+
+    public async Task<Dictionary<string, LiveData>> GetLiveDataBuffered(TimeSpan maxLive = default)
+    {
+        if (maxLive == default)
+            maxLive = TimeSpan.FromSeconds(15);
+
+        if (LastLiveUpdate == default || DateTime.Now - LastLiveUpdate > maxLive)
+            await UpdateDynamicData();
+
+        return BufferedLiveDatas;
     }
 
     public  void SetCurrentDestination(string destinationId)
@@ -182,7 +208,7 @@ public class DataManager
     {
         if(DestinationId  == null) return;
 
-        await UpdateStaticData();
+
         await UpdateDynamicData();
     }
 
@@ -195,6 +221,18 @@ public class DataManager
     {
         if (DestinationId == null)
             return;
+
+        if (UpdateStaticDataSemaphore.CurrentCount == 0)
+        {
+            await UpdateStaticDataSemaphore.WaitAsync(tk);
+            UpdateStaticDataSemaphore.Release();
+            return;
+        }
+        await UpdateStaticDataSemaphore.WaitAsync(tk);
+
+        if (tk.IsCancellationRequested)
+            return;
+            
         string dest = DestinationId;
 
         var static_data = await Client.GetFromJsonAsync<StaticDestinationData>("Data/GetDestinationStaticData/" + dest, tk);
@@ -210,13 +248,29 @@ public class DataManager
             Elements.AddRange(static_data.Restaurants);
             Elements.AddRange(static_data.Shows);
             Elements.AddRange(static_data.Attractions);
+            LastStaticUpdate = DateTime.Now;
         }
+
+        UpdateStaticDataSemaphore.Release();
     }
 
     public async Task UpdateDynamicData(CancellationToken tk = default)
     {
         if (DestinationId == null)
             return;
+
+        if (UpdateLiveDataSemaphore.CurrentCount == 0)
+        {
+            await UpdateLiveDataSemaphore.WaitAsync(tk);
+            UpdateLiveDataSemaphore.Release();
+            return;
+        }
+        await UpdateLiveDataSemaphore.WaitAsync(tk);
+
+
+        if (tk.IsCancellationRequested)
+            return;
+
         string dest = DestinationId;
 
         var live_data = await Client.GetFromJsonAsync<LiveDestinationData>("Data/GetDestinationLiveData/" + dest, tk);
@@ -224,6 +278,9 @@ public class DataManager
         {
             LiveDatas.Clear();
             LiveDatas.AddRange(live_data.Queues);
+            LastLiveUpdate = DateTime.Now;
         }
+
+        UpdateLiveDataSemaphore.Release();
     }
 }

@@ -24,7 +24,6 @@
         <ListView
             x:Name="ParkList"
             HorizontalOptions="Fill"
-            BackgroundColor="AliceBlue"
             HasUnevenRows="True"
             ItemSelected="ParkList_ItemSelected">
             <ListView.ItemTemplate>

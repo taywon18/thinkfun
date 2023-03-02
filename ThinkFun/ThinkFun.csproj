@@ -51,6 +51,7 @@
 
 	<ItemGroup>
 	  <PackageReference Include="Geolocator.Plugin" Version="1.0.2" />
+	  <PackageReference Include="Mapsui.Maui" Version="4.0.0-beta.8" />
 	</ItemGroup>
 
 	<ItemGroup>

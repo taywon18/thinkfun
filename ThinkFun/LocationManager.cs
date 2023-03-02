@@ -7,6 +7,8 @@ public class LocationManager
     public static LocationManager Instance { get; } = new LocationManager();
 
     public bool Allowed = false;
+    public int Retry = 0;
+
     private Mutex Mutex; //= new Mutex();
 
     private LocationManager()
@@ -30,9 +32,13 @@ public class LocationManager
 
     public async Task<bool> EnsureAllowed()
     {
+        if (Retry > 5)
+            return Allowed;
+
         if (Allowed)
             return true;
 
+        Retry++;
         PermissionStatus status = await Permissions.CheckStatusAsync<Permissions.LocationAlways>();
         if(status == PermissionStatus.Granted)
         {

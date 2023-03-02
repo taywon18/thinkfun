@@ -16,4 +16,10 @@
                 IsVisible="{Binding HaveDestination}"
                 ContentTemplate="{DataTemplate views:ListAttractions}"
                 />
+
+    <ShellContent 
+                Title="Carte"
+                IsVisible="{Binding HaveDestination}"
+                ContentTemplate="{DataTemplate views:Map}"
+                />
 </Shell>

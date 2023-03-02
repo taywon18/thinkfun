@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using ThinkFun.Model;
 
@@ -32,10 +33,12 @@ public partial class ListAttractions : ContentPage
     }
     public string ParkFilter = null;
     public bool FilterClosed { get; set; } = true;
+    public Microsoft.Maui.Dispatching.IDispatcherTimer UpdateTimer { get; }
+    bool InitialFetchDone = false;
 
     object RefresherMutex = new();
 
-    public class Attraction
+    public class AttractionView
     {
         public Model.ParkElement ParkElement { get; set; }
         public Model.LiveData LiveData { get; set; }
@@ -83,14 +86,21 @@ public partial class ListAttractions : ContentPage
             }
         }
     }
-
-    ObservableCollection<Attraction> Attractions = new ObservableCollection<Attraction>();
+    FastObservableCollection<AttractionView> Attractions = new FastObservableCollection<AttractionView>();
 
     public ListAttractions()
     {
         InitializeComponent();
 
         this.BindingContext = this;
+        AttractionList.ItemsSource = Attractions;
+        AttractionList.RefreshCommand = new Command(() => OnListRefresh());
+
+        UpdateTimer = Application.Current.Dispatcher.CreateTimer();
+        UpdateTimer.Interval = TimeSpan.FromSeconds(30);
+        UpdateTimer.Tick += async (s, e) => await RefreshList();
+        UpdateTimer.IsRepeating = true;
+        UpdateTimer.Start();
     }
 
     protected override async void OnAppearing()
@@ -100,65 +110,99 @@ public partial class ListAttractions : ContentPage
         await RefreshList(true);
     }
 
-    public async Task RefreshList(bool forceRefresh = false)
+    public async void OnListRefresh()
     {
-        await MainThread.InvokeOnMainThreadAsync(
-        async () =>
-        {
-            AttractionList.IsRefreshing = true;
-
-            if (forceRefresh)
-                await DataManager.Instance.Update();
-
-            var livedata = new Dictionary<string, Model.LiveData>(DataManager.Instance.BufferedLiveDatas);
-            var currentPosition = await LocationManager.Instance.GetPositionAsync();
-
-            Attractions.Clear();
-
-            foreach (var parkelement in DataManager.Instance.BufferedElements)
-            {
-                if (parkelement is not Model.Attraction)
-                    continue;
-                var attraction = parkelement as Model.Attraction;
-
-
-                Attraction attraction_viewmodel = new()
-                {
-                    ParkElement = attraction
-                };
-
-                if (currentPosition != null && currentPosition.HasLatitudeLongitude)
-                {
-                    Location here = new Location(currentPosition.Latitude, currentPosition.Longitude);
-                    Location destpos = new Location(attraction.Position.Latitude, attraction.Position.Longitude);
-
-                    var distM = Location.CalculateDistance(here, destpos, DistanceUnits.Kilometers) * 1000;
-                    attraction_viewmodel.DistanceDbl = distM;
-                }
-
-                if (livedata.ContainsKey(parkelement.UniqueIdentifier))
-                {
-                    var ld = livedata[parkelement.UniqueIdentifier];
-
-                    attraction_viewmodel.LiveData = ld;
-                }
-
-                Attractions.Add(attraction_viewmodel);
-            }
-
-            Attractions = new ObservableCollection<Attraction>(SortAndFilter(Attractions));
-
-            AttractionList.ItemsSource = Attractions;
-
-            AttractionList.IsRefreshing = false;
-        });
+        await RefreshList(true);
     }
 
-    protected IEnumerable<Attraction> SortAndFilter(IEnumerable<Attraction> attraction)
-    {
-        //Sort
 
-        if(SortBy == SortMode.ByDistance)
+    public async Task RefreshList(bool forceRefresh = false)
+    {
+        if (InitialFetchDone && AttractionList.IsRefreshing)
+            return;
+        InitialFetchDone = true;
+
+        AttractionList.IsRefreshing = true;
+
+        if (forceRefresh)
+            await DataManager.Instance.Update();
+
+        var staticdata = await DataManager.Instance.GetStaticDataBuffered();
+        var rawlivedata = await DataManager.Instance.GetLiveDataBuffered();
+        var livedata = new Dictionary<string, Model.LiveData>(rawlivedata);
+        var currentPosition = await LocationManager.Instance.GetPositionAsync();
+
+        var newView = new List<AttractionView>();
+        foreach (var parkelement in staticdata)
+        {
+            if (parkelement is not Model.Attraction)
+                continue;
+            var attraction = parkelement as Model.Attraction;
+
+            AttractionView attraction_viewmodel = new()
+            {
+                ParkElement = attraction
+            };
+
+            if (currentPosition != null && currentPosition.HasLatitudeLongitude)
+            {
+                Location here = new Location(currentPosition.Latitude, currentPosition.Longitude);
+                Location destpos = new Location(attraction.Position.Latitude, attraction.Position.Longitude);
+
+                var distM = Location.CalculateDistance(here, destpos, DistanceUnits.Kilometers) * 1000;
+                attraction_viewmodel.DistanceDbl = distM;
+            }
+
+            if (livedata.ContainsKey(parkelement.UniqueIdentifier))
+            {
+                var ld = livedata[parkelement.UniqueIdentifier];
+
+                attraction_viewmodel.LiveData = ld;
+            }
+
+            newView.Add(attraction_viewmodel);
+        }
+
+        var newViewFiltered = Filter(newView);
+        var newViewFilteredAndOrdered = Sort(newViewFiltered);
+
+        UpdateObservable(Attractions, newViewFilteredAndOrdered);
+
+        AttractionList.IsRefreshing = false;
+    }
+
+    protected void UpdateObservable(FastObservableCollection<AttractionView> view, IEnumerable<AttractionView> list)
+    {
+        /*HashSet<ParkElement> newlistAsHash = new(list.Select(x => x.ParkElement));
+        Dictionary<string, int> oldlistAsHash = new();
+
+        for(int i = 0; i < view.Count; i++)
+        {
+            var e = view[i];
+            
+            //remove nonexisting elements
+            if(!newlistAsHash.Contains(e))
+            {
+                view.RemoveAt(i);
+                i--;
+                return;
+            }
+
+            //modify existing element
+            view.Add(i);
+        }*/
+
+        view.SuspendCollectionChangeNotification();
+        view.Clear();
+        foreach (var i in list)
+            view.Add(i);
+        view.ResumeCollectionChangeNotification();
+        view.NotifyChanges();
+    }
+
+    protected IEnumerable<AttractionView> Sort(IEnumerable<AttractionView> attraction)
+    {
+        if (SortBy == SortMode.ByDistance)
             attraction = attraction.OrderBy(x => x.DistanceDbl);
 
         if (InverseSort)
@@ -167,23 +211,26 @@ public partial class ListAttractions : ContentPage
         if (FilterType == 1)
             attraction = attraction.Where(x => x.ParkElement is Model.Attraction);
         else if (FilterType == 2)
-            attraction = attraction.Where(x => x.ParkElement is Show);        
+            attraction = attraction.Where(x => x.ParkElement is Show);
         else if (FilterType == 3)
             attraction = attraction.Where(x => x.ParkElement is Restaurant);
 
-        //Filter
+        return attraction;
+    }
 
-        if(FilterStatus == 1)
+    protected IEnumerable<AttractionView> Filter(IEnumerable<AttractionView> attraction)
+    {
+        if (FilterStatus == 1)
             attraction = attraction.Where(x =>
             {
-                if(x.LiveData is Model.Queue queue)
+                if (x.LiveData is Model.Queue queue)
                 {
                     return queue.Status == Status.OPENED || queue.Status == Status.DOWN;
                 }
 
-                return true;    
+                return true;
             });
-        else if(FilterStatus == 2)
+        else if (FilterStatus == 2)
             attraction = attraction.Where(x =>
             {
                 if (x.LiveData is Model.Queue queue)
@@ -203,10 +250,6 @@ public partial class ListAttractions : ContentPage
 
                 return true;
             });
-        /*if (FilterClosed)
-            attraction = attraction.Where(x => (x.Status == Status.OPENED || x.Status == Status.DOWN));*/
-
-
 
         return attraction;
     }
