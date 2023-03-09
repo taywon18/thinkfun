@@ -11,12 +11,27 @@ public class LocationManager
 
     private Mutex Mutex; //= new Mutex();
 
+    GeolocatorPlugin.Abstractions.Position? LastPosition = null;
+    DateTime LastPositionUpdated = DateTime.MinValue;
+
     private LocationManager()
     {
         
     }
 
-    public async Task<GeolocatorPlugin.Abstractions.Position?> GetPositionAsync()
+    public async Task<GeolocatorPlugin.Abstractions.Position?> GetPositionBuffered(TimeSpan? maxtime = null, CancellationToken tk = default)
+    {
+        if (!maxtime.HasValue)
+            maxtime = TimeSpan.FromSeconds(60);
+
+        var elapsed = DateTime.Now - LastPositionUpdated;
+        if (LastPosition != null && elapsed <= maxtime)
+            return LastPosition;
+
+        return await GetPositionAsync(tk);
+    }
+
+    public async Task<GeolocatorPlugin.Abstractions.Position?> GetPositionAsync(CancellationToken tk = default)
     {
         Mutex?.WaitOne();
 
@@ -25,9 +40,20 @@ public class LocationManager
             Mutex?.ReleaseMutex();
             return null;
         }
+        CrossGeolocator.Current.DesiredAccuracy = 100;
 
         Mutex?.ReleaseMutex();
-        return await CrossGeolocator.Current.GetPositionAsync(TimeSpan.FromSeconds(2));
+        var ret =  await CrossGeolocator.Current.GetPositionAsync(TimeSpan.FromSeconds(5), tk, true);
+
+        Mutex?.WaitOne();
+        if (ret.HasLatitudeLongitude)
+        {
+            LastPosition = ret;
+            LastPositionUpdated = DateTime.Now;
+        }
+        Mutex?.ReleaseMutex();
+
+        return ret;
     }
 
     public async Task<bool> EnsureAllowed()

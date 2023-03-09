@@ -15,7 +15,7 @@
 		<ApplicationTitle>ThinkFun</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.thinkfun</ApplicationId>
+		<ApplicationId>fr.voie93quarts.thinkfun</ApplicationId>
 		<ApplicationIdGuid>7e57829a-4de9-4448-ab0c-348121af3d2f</ApplicationIdGuid>
 
 		<!-- Versions -->
@@ -30,17 +30,27 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net7.0-android|AnyCPU'">
+	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-android|AnyCPU'">
+	  <AndroidCreatePackagePerAbi>True</AndroidCreatePackagePerAbi>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" Color="#FFFFFF" />
 
 		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+		<MauiSplashScreen Include="Resources\Images\icon.svg" Color="#121212" BaseSize="128,128" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
 		<MauiImage Update="Resources\Images\dotnet_bot.svg" BaseSize="168,208" />
 		<MauiImage Update="Resources\Images\location.svg" BaseSize="256,256" />
+		<MauiImage Update="Resources\Images\heart_empty.svg" BaseSize="256,256" />
+		<MauiImage Update="Resources\Images\heart_full.svg" BaseSize="256,256" />
 
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />

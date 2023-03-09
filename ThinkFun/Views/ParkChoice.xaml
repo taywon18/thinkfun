@@ -7,7 +7,7 @@
         Orientation="Vertical">
         
         <Image
-            Source="dotnet_bot.png"
+            Source="icon.png"
             HeightRequest="200"
             HorizontalOptions="Center" />
 

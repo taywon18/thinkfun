@@ -1,4 +1,5 @@
 ﻿using ThinkFun.Views;
+using Map = ThinkFun.Views.Map;
 
 namespace ThinkFun
 {
@@ -16,11 +17,16 @@ namespace ThinkFun
 
             Routing.RegisterRoute("//Destinations", typeof(ParkChoice));
             Routing.RegisterRoute("//Attractions", typeof(ListAttractions));
+            Routing.RegisterRoute("//Map", typeof(Map));
         }
 
         protected override async void OnAppearing()
         {
-            await GoToAsync("//Attractions");
+            if(HaveDestination)
+            {
+                await GoToAsync("//Attractions");
+            }
+                
         }
 
         public void FlushDestination()

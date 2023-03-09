@@ -140,7 +140,7 @@ public class DataManager
     {
         Client = new()
         {
-            BaseAddress = new Uri("http://192.168.1.156:5000/")
+            BaseAddress = new Uri("http://voie93quarts.fr:5000/")
         };
 
         LoadConfig();

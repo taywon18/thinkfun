@@ -12,6 +12,8 @@ namespace ThinkFun
 
         public string? Destination { get; set; } = null;
 
+        public bool CompactDisplay { get; set; } = false;
+
         public int FilterType { get; set; } = 0;
         public int FilterPark { get; set; } = 0;
         public int FilterStatus { get; set; } = 0;

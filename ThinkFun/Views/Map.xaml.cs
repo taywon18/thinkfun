@@ -1,4 +1,4 @@
-using Mapsui;
+﻿using Mapsui;
 using Mapsui.Layers;
 using Mapsui.Styles;
 using Mapsui.UI.Maui;
@@ -7,6 +7,7 @@ using Color = Mapsui.Styles.Color;
 using Brush = Mapsui.Styles.Brush;
 using ThinkFun.Model;
 using Position = Mapsui.UI.Maui.Position;
+using System.Diagnostics;
 
 namespace ThinkFun.Views;
 
@@ -48,13 +49,26 @@ public partial class Map : ContentPage
         {
             Style = null,
             Features = await GetListOfPoints(),
-            Name = "LABELS"
+            Name = "LABELS",
+            IsMapInfoLayer = true
         };
         MapControl.Map?.Layers.Add(RenderLayer);
 
         //MapControl.Pins.Add(WhereIAm);
 
         MapControl.Map.Home = x => x.NavigateTo((new Position(48.8674, 2.7836)).ToMapsui(), 1);
+        MapControl.Map.Info += MapInfoAsk;
+    }
+
+    private async void MapInfoAsk(object sender, Mapsui.UI.MapInfoEventArgs e)
+    {
+        var featureLabel = e.MapInfo.Feature?["ParkElement"] as ParkElement;
+        if (featureLabel != null)
+        {
+            Debug.WriteLine("Info Event was invoked.");
+            Debug.WriteLine("Feature id: " + featureLabel);
+            await DisplayAlert("Attraction", featureLabel.Name, "OK");
+        }
     }
 
     async Task<IEnumerable<IFeature>> GetListOfPoints()
@@ -88,22 +102,28 @@ public partial class Map : ContentPage
 
             string text = "?";
             if(queue.ClassicWaitTime.HasValue)
-                text = String.Format("{0:0} min", text, queue.ClassicWaitTime.Value.TotalMinutes);
+                text = String.Format("{0:0} min", queue.ClassicWaitTime.Value.TotalMinutes);
+
+            if (DataManager.Instance.Configuration.FavoriteElements.Contains(i.UniqueIdentifier))
+                text = "☺ " + text;
+
+            var label = new LabelStyle
+            {
+                Text = text,
+                BackColor = new Mapsui.Styles.Brush(color),
+                ForeColor = Color.White,
+            };
 
             List<Mapsui.Styles.IStyle> style = new()
             {
-                new LabelStyle
-                {
-                    Text = text,
-                    BackColor = new Mapsui.Styles.Brush(color),
-                    ForeColor = Color.White,
-                },
+                label
             };
 
-            IFeature feature = new PointFeature((new Mapsui.UI.Maui.Position(attraction.Position.Latitude, attraction.Position.Longitude)).ToMapsui())
+            var feature = new PointFeature((new Mapsui.UI.Maui.Position(attraction.Position.Latitude, attraction.Position.Longitude)).ToMapsui())
             {
                 Styles = style
             };
+            feature["ParkElement"] = i;
 
             list.Add(feature);
         }

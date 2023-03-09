@@ -6,131 +6,216 @@
     <StackLayout 
         Padding="20"
         Orientation="Vertical">
-        <StackLayout HorizontalOptions="Center" Orientation="Horizontal">
-            <Button Text="Par distance"/>
-            <Button Text="Par temps d'attente"/>
-            <Button Text="Intelligent"/>
-        </StackLayout>
-
-        <RefreshView 
-            x:Name="Refresher"
+        <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+            <StackLayout HorizontalOptions="Center" Orientation="Horizontal" Margin="10" Spacing="10">
+                <Button Text="Par distance" IsEnabled="False"/>
+                <Button Text="Par temps d'attente" IsEnabled="False"/>
+                <Button Text="Intelligent" IsEnabled="False"/>
+            </StackLayout>
+        </ScrollView>
+        <ListView
+            x:Name="AttractionList"
+            HasUnevenRows="True"
+            IsVisible="{Binding VerboseDisplay}"
+            IsPullToRefreshEnabled="True"
             IsRefreshing="{Binding IsRefreshing}"
-            Command="{Binding RefreshCommand}">
-            <ListView
-                x:Name="AttractionList"
-                HorizontalOptions="Fill"
-                HasUnevenRows="True"
-                >
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <ViewCell>
-                            <Grid Padding="10">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="2*" />
-                                    <ColumnDefinition Width="8*" />
-                                    <ColumnDefinition Width="1*" />
-                                    <ColumnDefinition Width="1*" />
-                                </Grid.ColumnDefinitions>
+            >
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <Grid Padding="10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="8*" />
+                                <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="1*" />
+                            </Grid.ColumnDefinitions>
 
-                                <Label 
-                                    Grid.ColumnSpan="2"
-                                    Text="{Binding NameDisplayable}"
-                                    FontSize="Medium"
-                                    Margin="5, 0, 5, 0"/>
+                            <Label 
+                                Grid.ColumnSpan="2"
+                                Text="{Binding NameDisplayable}"
+                                FontSize="Medium"
+                                Margin="5, 0, 5, 0"/>
 
-                                <ImageButton 
-                                    Grid.RowSpan="1"
-                                    Grid.Column="2"
+                            <!-- ? -->
+                            <ImageButton
+                                IsVisible="False"
+                                Grid.RowSpan="1"
+                                Grid.Column="2"
+                                Source="location.png"
+                                Aspect="AspectFill"
+                                HeightRequest="30"
+                                WidthRequest="30" />
+
+                            <!-- Heart-->
+                            <ImageButton
+                                IsVisible="{Binding NotFavorite}"
+                                Grid.RowSpan="1"
+                                Grid.Column="3"
+                                Source="heart_empty.png"
+                                Aspect="AspectFill"
+                                HeightRequest="30"
+                                WidthRequest="30"
+                                Command="{Binding ToggleFavorite}"/>
+
+                            <ImageButton
+                                IsVisible="{Binding Favorite}"
+                                Grid.RowSpan="1"
+                                Grid.Column="3"
+                                Source="heart_full.png"
+                                Aspect="AspectFill"
+                                HeightRequest="30"
+                                WidthRequest="30"
+                                Command="{Binding ToggleFavorite}"/>
+
+                            <ImageButton 
+                                IsVisible="True"
+                                Grid.Row="1"
+                                Grid.RowSpan="2"
+                                Source="location.png"
+                                Aspect="AspectFill"
+                                HeightRequest="60"
+                                WidthRequest="60" />
+
+                            <Label
+                                Grid.Column="1"
+                                Grid.Row="1"
+                                FontAttributes="Bold"
+                                Text="{Binding StatusDisplayable}"/>
+
+                            <Label
+                                Grid.Column="1"
+                                Grid.Row="2"
+                                Text="{Binding DescriptionDisplayable}"
+                                FontAttributes="Italic"/>
+
+                            <ImageButton Grid.RowSpan="1"
+                                    IsVisible="False"
                                     Source="location.png"
                                     Aspect="AspectFill"
                                     HeightRequest="30"
-                                    WidthRequest="30" />
-                                <ImageButton
-                                    Grid.RowSpan="1"
-                                    Grid.Column="3"
-                                    Source="location.png"
-                                    Aspect="AspectFill"
-                                    HeightRequest="30"
-                                    WidthRequest="30" />
-
-                                <ImageButton 
-                                    Grid.Row="1"
-                                    Grid.RowSpan="2"
-                                    Source="location.png"
-                                    Aspect="AspectFill"
-                                    HeightRequest="60"
-                                    WidthRequest="60" />
-
-                                <Label
-                                    Grid.Column="1"
-                                    Grid.Row="1"
-                                    FontAttributes="Bold"
-                                    Text="{Binding StatusDisplayable}"/>
-
-                                <Label
-                                    Grid.Column="1"
+                                    WidthRequest="30"
                                     Grid.Row="2"
+                                    Grid.Column="2"
+                                    />
+                            <ImageButton Grid.RowSpan="1"
+                                    IsVisible="False"
+                                    Source="location.png"
+                                    Aspect="AspectFill"
+                                    HeightRequest="30"
+                                    WidthRequest="30"
+                                    Grid.Row="2"
+                                    Grid.Column="3"
+                                                />
+                        </Grid>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <ListView
+                x:Name="AttractionListCompact"
+                HasUnevenRows="False"
+                IsVisible="{Binding CompactDisplay}"
+                IsPullToRefreshEnabled="True"
+                IsRefreshing="{Binding IsRefreshing}"
+                RowHeight="20"
+                >
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <Grid Padding="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="8*" />
+                                <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="1.5*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Label 
+                                    Grid.Column="1"
+                                    Text="{Binding NameDisplayable}"
+                                    LineBreakMode="TailTruncation"
+                                    />
+                            <Label 
+                                    Grid.Column="2"
                                     Text="{Binding DescriptionDisplayable}"
-                                    FontAttributes="Italic"/>
+                                    />
+                            <Label 
+                                    Grid.Column="0"
+                                    Text="{Binding StatusDisplayable}"
+                                    />
+                            <ImageButton
+                                    IsVisible="{Binding NotFavorite}"
+                                    Grid.Column="3"
+                                    Source="heart_empty.png"
+                                    Aspect="AspectFill"
+                                    HeightRequest="30"
+                                    WidthRequest="30"
+                                    Command="{Binding ToggleFavorite}"/>
 
-                                <ImageButton Grid.RowSpan="1"
-                                        Source="location.png"
-                                        Aspect="AspectFill"
-                                        HeightRequest="30"
-                                        WidthRequest="30"
-                                        Grid.Row="2"
-                                        Grid.Column="2"
-                                        />
-                                <ImageButton Grid.RowSpan="1"
-                                        Source="location.png"
-                                        Aspect="AspectFill"
-                                        HeightRequest="30"
-                                        WidthRequest="30"
-                                        Grid.Row="2"
-                                        Grid.Column="3"
-                                                 />
-                            </Grid>
-                        </ViewCell>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-        </RefreshView>
+                            <ImageButton
+                                    IsVisible="{Binding Favorite}"
+                                    Grid.Column="3"
+                                    Source="heart_full.png"
+                                    Aspect="AspectFill"
+                                    HeightRequest="30"
+                                    WidthRequest="30"
+                                    Command="{Binding ToggleFavorite}"/>
 
-        <StackLayout HorizontalOptions="Center" Orientation="Horizontal">
-            <Picker x:Name="TypePicker"
-                Title="Par type"
-                SelectedIndex="{Binding FilterType}"
-                SelectedIndexChanged="TypePicker_SelectedIndexChanged">
-                <Picker.ItemsSource>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Tous</x:String>
-                        <x:String>Attraction</x:String>
-                        <x:String>Show</x:String>
-                        <x:String>Restaurant</x:String>
-                    </x:Array>
-                </Picker.ItemsSource>
-            </Picker>
-            <Picker x:Name="ParkPicker"
-                Title="Par parc">
-            </Picker>
-            <Picker x:Name="StatusPicker"
-                Title="Par ouverture"
-                SelectedIndex="{Binding FilterStatus}"
-                SelectedIndexChanged="TypePicker_SelectedIndexChanged">
-                <Picker.ItemsSource>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Tous</x:String>
-                        <x:String>Ouverts et cassés</x:String>
-                        <x:String>Ouverts seulement</x:String>
-                        <x:String>Fermés et cassés</x:String>
-                    </x:Array>
-                </Picker.ItemsSource>
-            </Picker>
-        </StackLayout>
+                        </Grid>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <ScrollView 
+            Orientation="Horizontal"
+            HorizontalOptions="Fill"
+            HorizontalScrollBarVisibility="Never">
+            <StackLayout HorizontalOptions="Center" Orientation="Horizontal" Spacing="10">
+                <Picker x:Name="TypePicker"
+                    Title="Par type"
+                    SelectedIndex="{Binding FilterType}"
+                    SelectedIndexChanged="TypePicker_SelectedIndexChanged">
+                    <Picker.ItemsSource>
+                        <x:Array Type="{x:Type x:String}">
+                            <x:String>Tous</x:String>
+                            <x:String>Attraction</x:String>
+                            <x:String>Show</x:String>
+                            <x:String>Restaurant</x:String>
+                        </x:Array>
+                    </Picker.ItemsSource>
+                </Picker>
+                <Picker x:Name="ParkPicker"
+                    SelectedIndex="{Binding FilterPark}"
+                    SelectedIndexChanged="TypePicker_SelectedIndexChanged"
+                    Title="Par parc">
+                </Picker>
+                <Picker x:Name="StatusPicker"
+                    Title="Par ouverture"
+                    SelectedIndex="{Binding FilterStatus}"
+                    SelectedIndexChanged="TypePicker_SelectedIndexChanged">
+                    <Picker.ItemsSource>
+                        <x:Array Type="{x:Type x:String}">
+                            <x:String>Tous</x:String>
+                            <x:String>Ouverts et cassés</x:String>
+                            <x:String>Ouverts seulement</x:String>
+                            <x:String>Fermés et cassés</x:String>
+                        </x:Array>
+                    </Picker.ItemsSource>
+                </Picker>
+                <Switch 
+                    IsToggled="{Binding CompactDisplay,Mode=TwoWay}"
+                />
+            </StackLayout>
+        </ScrollView>
     </StackLayout>
 </ContentPage>
