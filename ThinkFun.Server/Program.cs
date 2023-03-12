@@ -1,5 +1,9 @@
 using ThinkFun.Server;
+using Wood;
 
+LogManager.Instance.DefaultConfiguration();
+LogManager.Instance.Destinations.AddDestination(new Wood.Destination.FileDestination());
+LogManager.Information($"Wood log system started.");
 
 var builder = WebApplication.CreateBuilder(args);
 

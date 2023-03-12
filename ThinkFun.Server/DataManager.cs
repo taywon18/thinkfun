@@ -1,4 +1,5 @@
 ﻿using ThinkFun.Server.Sources;
+using Wood;
 
 namespace ThinkFun.Server;
 
@@ -20,12 +21,10 @@ public class DataManager
         if (FlushLiveDataTimer != null)
             return;
 
-        Console.WriteLine("Starting DataManager...");
-
-        await Update();
+        await UpdateStaticData();
         await UpdateLiveData();
 
-        FlushLiveDataTimer = new System.Timers.Timer(15000);
+        FlushLiveDataTimer = new System.Timers.Timer(60000);
         // Hook up the Elapsed event for the timer. 
         FlushLiveDataTimer.Elapsed += async (s, e) => {
             await UpdateLiveData();
@@ -34,18 +33,18 @@ public class DataManager
         FlushLiveDataTimer.Enabled = true;
     }
 
-    public async Task Update()
+    public async Task UpdateStaticData()
     {
         var tks = new CancellationTokenSource();
 
         foreach(var source in sources)
             try
             {
-                await source.Update(Data, tks.Token);
+                await source.UpdateStaticData(Data, tks.Token);
             }
             catch(Exception e)
             {
-                Console.Write(e);
+                LogManager.Error($"Catching error while updating static data in DataManager: {e}.");
             }
     }
 
@@ -53,6 +52,7 @@ public class DataManager
     {
         var tks = new CancellationTokenSource();
 
+        DateTime before = DateTime.Now;
         foreach (var source in sources)
             try
             {
@@ -60,8 +60,15 @@ public class DataManager
             }
             catch (Exception e)
             {
-                Console.Write(e);
+                LogManager.Error($"Catching error while updating live data in DataManager: {e}.");
             }        
+        DateTime after = DateTime.Now;
+        var delta = after - before;
+
+        if(FlushLiveDataTimer != null && FlushLiveDataTimer.Interval < delta.TotalMilliseconds)
+            LogManager.Debug($"Live data update took {delta.TotalMilliseconds}ms, but the timer interval is {FlushLiveDataTimer.Interval}ms.");
+        else
+            LogManager.Debug($"Live data update took {delta.TotalMilliseconds}ms.");
     }
 
     public void Init()

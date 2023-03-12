@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    <PackageReference Include="Wood" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>

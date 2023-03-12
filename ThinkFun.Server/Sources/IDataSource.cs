@@ -1,7 +1,11 @@
 ﻿namespace ThinkFun.Server.Sources;
 
-public interface IDataSource
+public abstract class IDataSource
 {
-    Task Update(DataCollection collection, CancellationToken t);
-    Task UpdateLiveData(DataCollection collection, CancellationToken t);
+    public bool FlushDestinations = true;
+    public bool FlushParks = true;
+    public bool FlushElements = true;
+
+    public abstract Task UpdateStaticData(DataCollection collection, CancellationToken t);
+    public abstract Task UpdateLiveData(DataCollection collection, CancellationToken t);
 }

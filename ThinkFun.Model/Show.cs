@@ -7,6 +7,6 @@ using System.Threading.Tasks;
 namespace ThinkFun.Model;
 
 public class Show
-    : ParkElement
+    : InterestPoint
 {
 }

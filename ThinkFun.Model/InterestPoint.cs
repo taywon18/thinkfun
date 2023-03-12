@@ -3,5 +3,5 @@
 public class InterestPoint
     : ParkElement
 {
-    public Position Position { get; set; } = new Position();
+    public Position? Position { get; set; } = default;
 }
