@@ -12,11 +12,23 @@ public class LocationManager
     private Mutex Mutex; //= new Mutex();
 
     GeolocatorPlugin.Abstractions.Position? LastPosition = null;
+    
     DateTime LastPositionUpdated = DateTime.MinValue;
 
     private LocationManager()
     {
-        
+    }
+
+    public async Task StartListening()
+    {
+        await CrossGeolocator.Current.StartListeningAsync(TimeSpan.FromSeconds(0.2), 1, true);
+        CrossGeolocator.Current.PositionChanged += CurrentPositionChanged;
+    }
+
+    private void CurrentPositionChanged(object sender, GeolocatorPlugin.Abstractions.PositionEventArgs e)
+    {
+        LastPosition = e.Position;
+        LastPositionUpdated = DateTime.UtcNow;
     }
 
     public async Task<GeolocatorPlugin.Abstractions.Position?> GetPositionBuffered(TimeSpan? maxtime = null, CancellationToken tk = default)

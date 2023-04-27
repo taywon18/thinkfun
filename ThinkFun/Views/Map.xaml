@@ -3,4 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ThinkFun.Views.Map"
              Title="Carte">
+
+    <Shell.TitleView>
+        <ImageButton
+                VerticalOptions="Center"
+                HorizontalOptions="End"
+                Source="location.png"
+                Clicked="ImageButton_Clicked"
+                />
+    </Shell.TitleView>
+    
 </ContentPage>

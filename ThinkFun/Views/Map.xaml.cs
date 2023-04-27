@@ -8,56 +8,75 @@ using Brush = Mapsui.Styles.Brush;
 using ThinkFun.Model;
 using Position = Mapsui.UI.Maui.Position;
 using System.Diagnostics;
+using HarfBuzzSharp;
+using Mapsui.Providers;
 
 namespace ThinkFun.Views;
 
 public partial class Map : ContentPage
 {
     MapControl MapControl;
-    Pin WhereIAm = null;
-    MemoryLayer RenderLayer = null;
+    Layer RenderLayer = null;
+    Mapsui.Tiling.Layers.TileLayer OsmLayer;
+    IDispatcherTimer Timer;
 
     public Map()
 	{
 		InitializeComponent();
+        OsmLayer = Mapsui.Tiling.OpenStreetMap.CreateTileLayer();
 
-        MapControl = new Mapsui.UI.Maui.MapControl();
-        MapControl.Map?.Layers.Add(Mapsui.Tiling.OpenStreetMap.CreateTileLayer());
-        Content = MapControl;
+        Timer = Application.Current.Dispatcher.CreateTimer();
+        Timer.Interval = TimeSpan.FromSeconds(0.5);
+        Timer.Tick += (s, e) => MapControl.RefreshData();
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
 
+        MapControl = new Mapsui.UI.Maui.MapControl();
+        Content = MapControl;
+
+        MapControl.Map.Home = x => x.NavigateTo((new Position(48.8674, 2.7836)).ToMapsui(), 1);
+        MapControl.Map.Info += MapInfoAsk;
+
         await DrawGraph();
+        Timer.Start();
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+
+        Timer.Stop();
     }
 
     async Task DrawGraph()
     {
-        WhereIAm = new Pin(new MapView())
-        {
-            Position = new Mapsui.UI.Maui.Position(48.8674, 2.7836),
-            Scale = 0.3f,
-            Label = "LL"
-        };
-
-        var osmlayer = Mapsui.Tiling.OpenStreetMap.CreateTileLayer();
-        MapControl.Map?.Layers.Add(osmlayer);
-
-        RenderLayer = new MemoryLayer
+        MapControl.Map.Layers.Clear();
+        
+        MapControl.Map.Layers.Add(OsmLayer);
+        RenderLayer = new Layer
         {
             Style = null,
-            Features = await GetListOfPoints(),
+            DataSource = new IconProvider(this),
             Name = "LABELS",
             IsMapInfoLayer = true
         };
-        MapControl.Map?.Layers.Add(RenderLayer);
+        MapControl.Map.Layers.Add(RenderLayer);
 
-        //MapControl.Pins.Add(WhereIAm);
 
-        MapControl.Map.Home = x => x.NavigateTo((new Position(48.8674, 2.7836)).ToMapsui(), 1);
-        MapControl.Map.Info += MapInfoAsk;
+        var poslayer = new Layer
+        {
+            Style = null,
+            DataSource = new LocationProvider(),
+            Name = "POS",
+            IsMapInfoLayer = true
+        };
+        MapControl.Map.Layers.Add(poslayer);
+
+        MapControl.Navigator.CenterOn((new Position(48.8674, 2.7836)).ToMapsui(), 1);
+        MapControl.Refresh();
     }
 
     private async void MapInfoAsk(object sender, Mapsui.UI.MapInfoEventArgs e)
@@ -71,10 +90,64 @@ public partial class Map : ContentPage
         }
     }
 
+    class IconProvider
+        : Mapsui.Providers.IProvider
+    {
+        public string CRS;
+        string IProvider.CRS { get => CRS; set => CRS = value; }
+        Map Map;
+        
+        public IconProvider(Map map)
+        {
+            Map = map;
+        }
+
+        public MRect GetExtent()
+        {
+            return null;
+        }
+
+        public Task<IEnumerable<IFeature>> GetFeaturesAsync(FetchInfo fetchInfo)
+        {
+            return Map.GetListOfPoints();
+        }
+    }
+
+    class LocationProvider
+        : Mapsui.Providers.IProvider
+    {
+        public string CRS;
+        string IProvider.CRS { get => CRS; set => CRS = value; }
+
+
+        public MRect GetExtent()
+        {
+            return null;
+        }
+
+        public async Task<IEnumerable<IFeature>> GetFeaturesAsync(FetchInfo fetchInfo)
+        {
+            var features = new List<IFeature>();
+            var style = new Mapsui.Styles.LabelStyle
+            {
+                Text = "Mapos",
+                BackColor = new Mapsui.Styles.Brush(Color.Blue),
+                ForeColor = Color.White,
+            };
+
+            var pos = await LocationManager.Instance.GetPositionBuffered();
+            var feature = new PointFeature((new Mapsui.UI.Maui.Position(pos.Latitude, pos.Longitude)).ToMapsui())
+            {
+                Styles = new[] { style }
+            };
+            features.Add(feature);
+            return features;
+        }
+    }
+
     async Task<IEnumerable<IFeature>> GetListOfPoints()
     {
         List<IFeature> list = new List<IFeature>();
-
 
         var staticData = await DataManager.Instance.GetStaticDataBuffered();
         var rawliveData = await DataManager.Instance.GetLiveDataBuffered();
@@ -128,11 +201,11 @@ public partial class Map : ContentPage
             list.Add(feature);
         }
 
+        return list as IEnumerable<IFeature>;
+    }
 
-
-     
-
-        IEnumerable<IFeature> points = list as IEnumerable<IFeature>;
-        return points;
+    private async void ImageButton_Clicked(object sender, EventArgs e)
+    {
+        await LocationManager.Instance.StartListening();
     }
 }

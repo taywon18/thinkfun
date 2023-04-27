@@ -3,8 +3,11 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
 using ThinkFun.Model;
+using CommunityToolkit.Maui.Alerts;
+
 
 namespace ThinkFun.Views;
+
 
 public partial class ListAttractions : ContentPage
 {
@@ -258,7 +261,7 @@ public partial class ListAttractions : ContentPage
             };
 
             var interestpoint = parkelement as InterestPoint;
-            if (interestpoint != null && currentPosition != null && currentPosition.HasLatitudeLongitude)
+            if (interestpoint != null && currentPosition != null && currentPosition.HasLatitudeLongitude && interestpoint.Position != null)
             {
                 Location here = new Location(currentPosition.Latitude, currentPosition.Longitude);
                 Location destpos = new Location(interestpoint.Position.Latitude, interestpoint.Position.Longitude);

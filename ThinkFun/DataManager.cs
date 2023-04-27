@@ -183,7 +183,7 @@ public class DataManager
     {
         while (BufferedDestination.Count == 0)
         {
-            await Flush(tk);
+            await FlushSecurized(tk);
 
             if (tk.IsCancellationRequested)
                 return BufferedDestination;
@@ -192,7 +192,7 @@ public class DataManager
         return BufferedDestination;
     }
 
-    public async Task Flush(CancellationToken tk = default)
+    public async Task FlushSecurized(CancellationToken tk = default)
     {
         try
         {
@@ -217,70 +217,86 @@ public class DataManager
         AllDestinations = await Client.GetFromJsonAsync<List<Destination>>("Data/GetDestinations", tk);
     }
 
-    public async Task UpdateStaticData(CancellationToken tk = default)
+    public async Task<bool> UpdateStaticData(CancellationToken tk = default)
     {
         if (DestinationId == null)
-            return;
+            return false;
 
         if (UpdateStaticDataSemaphore.CurrentCount == 0)
         {
             await UpdateStaticDataSemaphore.WaitAsync(tk);
             UpdateStaticDataSemaphore.Release();
-            return;
+            return false;
         }
         await UpdateStaticDataSemaphore.WaitAsync(tk);
 
         if (tk.IsCancellationRequested)
-            return;
+            return false;
             
         string dest = DestinationId;
 
-        var static_data = await Client.GetFromJsonAsync<StaticDestinationData>("Data/GetDestinationStaticData/" + dest, tk);
-        lock (Parks)
+        try
         {
-            Parks.Clear();
-            Parks.AddRange(static_data.Parks);
-        }
+            var static_data = await Client.GetFromJsonAsync<StaticDestinationData>("Data/GetDestinationStaticData/" + dest, tk);
 
-        lock (Elements)
-        {
-            Elements.Clear();
-            Elements.AddRange(static_data.Restaurants);
-            Elements.AddRange(static_data.Shows);
-            Elements.AddRange(static_data.Attractions);
-            LastStaticUpdate = DateTime.Now;
+            lock (Parks)
+            {
+                Parks.Clear();
+                Parks.AddRange(static_data.Parks);
+            }
+
+            lock (Elements)
+            {
+                Elements.Clear();
+                Elements.AddRange(static_data.Restaurants);
+                Elements.AddRange(static_data.Shows);
+                Elements.AddRange(static_data.Attractions);
+                LastStaticUpdate = DateTime.Now;
+            }
+        }
+        catch (Exception ex) {
+            Console.WriteLine(ex);
         }
 
         UpdateStaticDataSemaphore.Release();
+        return true;
     }
 
-    public async Task UpdateDynamicData(CancellationToken tk = default)
+    public async Task<bool> UpdateDynamicData(CancellationToken tk = default)
     {
         if (DestinationId == null)
-            return;
+            return false;
 
         if (UpdateLiveDataSemaphore.CurrentCount == 0)
         {
             await UpdateLiveDataSemaphore.WaitAsync(tk);
             UpdateLiveDataSemaphore.Release();
-            return;
+            return false;
         }
         await UpdateLiveDataSemaphore.WaitAsync(tk);
 
 
         if (tk.IsCancellationRequested)
-            return;
+            return false;
 
         string dest = DestinationId;
 
-        var live_data = await Client.GetFromJsonAsync<LiveDestinationData>("Data/GetDestinationLiveData/" + dest, tk);
-        lock (LiveDatas)
+        try
         {
-            LiveDatas.Clear();
-            LiveDatas.AddRange(live_data.Queues);
-            LastLiveUpdate = DateTime.Now;
+            var live_data = await Client.GetFromJsonAsync<LiveDestinationData>("Data/GetDestinationLiveData/" + dest, tk);
+            lock (LiveDatas)
+            {
+                LiveDatas.Clear();
+                LiveDatas.AddRange(live_data.Queues);
+                LastLiveUpdate = DateTime.Now;
+            }
+        }
+        catch(Exception ex) 
+        { 
+            Console.WriteLine(ex);
         }
 
         UpdateLiveDataSemaphore.Release();
+        return true;
     }
 }
