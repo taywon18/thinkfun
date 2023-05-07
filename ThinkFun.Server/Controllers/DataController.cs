@@ -8,11 +8,8 @@ namespace ThinkFun.Server.Controllers;
 public class DataController
     : ControllerBase
 {
-    private readonly ILogger<DataController> _logger;
-
-    public DataController(ILogger<DataController> logger)
+    public DataController()
     {
-        _logger = logger;
     }
 
     [HttpGet("GetDestinations")]
@@ -45,5 +42,42 @@ public class DataController
             return NotFound(id);
 
         return Ok(data);
+    }
+
+    [HttpGet("GetHistory/{id}/{from}/{to}")]
+    public async Task<IActionResult> GetDestinationLiveData(string id, string from, string to)
+    {
+        if (id == null)
+            return BadRequest();
+
+        if (from == null)
+            return BadRequest();
+        DateTime fromDate = DateTime.Parse(from);
+
+        DateTime toDate;
+        if (to == "now")
+            toDate = DateTime.Now;
+        else if (to == null)
+            return BadRequest();
+        else
+            toDate = DateTime.Parse(to);
+
+        List<Queue> data = new();
+        await foreach (var i in DataStore.Instance.Get(id, fromDate, toDate))
+            if(i is Queue)
+                data.Add((Queue)i);
+
+        return Ok(data);
+    }
+
+    [HttpGet("GetLastEvents/{destinationid}")]
+    public async Task<IActionResult> GetLastEvents(string destinationid)
+    {
+        if (destinationid == null)
+            return BadRequest();
+
+        var ret = DataManager.Instance.Data.GetLastEvents(destinationid);
+
+        return Ok(ret);
     }
 }

@@ -10,6 +10,8 @@ using Position = Mapsui.UI.Maui.Position;
 using System.Diagnostics;
 using HarfBuzzSharp;
 using Mapsui.Providers;
+using System.Threading;
+using CommunityToolkit.Maui.Alerts;
 
 namespace ThinkFun.Views;
 
@@ -136,6 +138,9 @@ public partial class Map : ContentPage
             };
 
             var pos = await LocationManager.Instance.GetPositionBuffered();
+            if (pos == null)
+                return features;
+
             var feature = new PointFeature((new Mapsui.UI.Maui.Position(pos.Latitude, pos.Longitude)).ToMapsui())
             {
                 Styles = new[] { style }
@@ -147,7 +152,7 @@ public partial class Map : ContentPage
 
     async Task<IEnumerable<IFeature>> GetListOfPoints()
     {
-        List<IFeature> list = new List<IFeature>();
+        List<IFeature> list = new ();
 
         var staticData = await DataManager.Instance.GetStaticDataBuffered();
         var rawliveData = await DataManager.Instance.GetLiveDataBuffered();

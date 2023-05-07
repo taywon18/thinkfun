@@ -1,4 +1,7 @@
-﻿using ThinkFun.Server.Sources;
+﻿using System;
+using System.Text.Json;
+using ThinkFun.Model;
+using ThinkFun.Server.Sources;
 using Wood;
 
 namespace ThinkFun.Server;
@@ -6,11 +9,17 @@ namespace ThinkFun.Server;
 public class DataManager
 {
     public static DataManager Instance { get;  } = new DataManager();
+
+    const double SaveTimeMinutes = 5;
+
     public DataCollection Data { get; } = new DataCollection();
 
     private static System.Timers.Timer? FlushLiveDataTimer;
 
     List<IDataSource> sources = new List<IDataSource>();
+
+    public DateTime? LastSave = null;
+
     private DataManager() 
     {
         sources.Add(new Sources.ThemeParkWiki.ThemeParkWikiSource());
@@ -20,7 +29,7 @@ public class DataManager
     {
         if (FlushLiveDataTimer != null)
             return;
-
+        
         await UpdateStaticData();
         await UpdateLiveData();
 
@@ -37,7 +46,8 @@ public class DataManager
     {
         var tks = new CancellationTokenSource();
 
-        foreach(var source in sources)
+        DateTime before = DateTime.Now;
+        foreach (var source in sources)
             try
             {
                 await source.UpdateStaticData(Data, tks.Token);
@@ -46,8 +56,10 @@ public class DataManager
             {
                 LogManager.Error($"Catching error while updating static data in DataManager: {e}.");
             }
-    }
+        var updateTime = DateTime.Now - before;
 
+        LogManager.Debug($"Static data update took {updateTime}.");
+    }
     public async Task UpdateLiveData()
     {
         var tks = new CancellationTokenSource();
@@ -62,16 +74,41 @@ public class DataManager
             {
                 LogManager.Error($"Catching error while updating live data in DataManager: {e}.");
             }        
-        DateTime after = DateTime.Now;
-        var delta = after - before;
+        var updateTime = DateTime.Now - before;
 
-        if(FlushLiveDataTimer != null && FlushLiveDataTimer.Interval < delta.TotalMilliseconds)
-            LogManager.Debug($"Live data update took {delta.TotalMilliseconds}ms, but the timer interval is {FlushLiveDataTimer.Interval}ms.");
+
+        before = DateTime.Now;
+        await SaveLiveDataIfNeeded();
+        var saveTime = DateTime.Now - before;
+
+        LogManager.Debug($"Saving live data update took {saveTime}.");
+
+        if (FlushLiveDataTimer != null && FlushLiveDataTimer.Interval < (updateTime + saveTime).TotalMilliseconds)
+            LogManager.Warn($"Live data update and save took {(updateTime + saveTime).TotalSeconds}s ({updateTime.TotalMilliseconds}ms + {saveTime.TotalMilliseconds}ms), but the timer interval is {FlushLiveDataTimer.Interval/1000}s.");
         else
-            LogManager.Debug($"Live data update took {delta.TotalMilliseconds}ms.");
+            LogManager.Debug($"Live data update and save took {(updateTime + saveTime).TotalSeconds}s ({updateTime.TotalMilliseconds}ms + {saveTime.TotalMilliseconds}ms).");
     }
 
     public void Init()
     {
+    }
+
+    public async Task SaveLiveDataIfNeeded(CancellationToken tk = default)
+    {
+        if (LastSave != null && (DateTime.Now - LastSave.Value).TotalMinutes < SaveTimeMinutes)
+            return;
+
+        await SaveLiveData(tk);
+    }
+
+    public async Task SaveLiveData(CancellationToken tk = default)
+    {
+        await DataStore.Instance.Add(Data.AllLiveData, tk);
+    }
+
+    public async void PushEvent(Event e)
+    {
+        LogManager.Information($"New event {JsonSerializer.Serialize(e)}");
+        await DataStore.Instance.Add(e);
     }
 }

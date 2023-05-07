@@ -1,20 +1,35 @@
-﻿using ThinkFun.Model;
+﻿using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using ThinkFun.Model;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ThinkFun.Server;
 
 public class DataCollection
 {
-    public Dictionary<string, Destination> DestinationsbyId { get; private set; } = new Dictionary<string, Destination>();
-    public Dictionary<string, HashSet<Park>> ParksByDestinations { get; private set; } = new Dictionary<string, HashSet<Park>>();
-    public Dictionary<string, HashSet<ParkElement>> PointsByParks { get; private set; } = new Dictionary<string, HashSet<ParkElement>>();
+    public Dictionary<string, Destination> DestinationsbyId { get; private set; } = new ();
+    public Dictionary<string, HashSet<Park>> ParksByDestinations { get; private set; } = new ();
+    public Dictionary<string, HashSet<ParkElement>> PointsByParks { get; private set; } = new ();
 
-    public Dictionary<string, HashSet<LiveData>> LiveDataByDestination { get; private set; } = new Dictionary<string, HashSet<LiveData>>();
+    public Dictionary<string, HashSet<LiveData>> LiveDataByDestination { get; private set; } = new();
+    public Dictionary<string, List<Event>> LastEventsByDestination { get; private set; } = new ();
+
+    public int MaxEventByDestination = 10;
 
     public IEnumerable<Destination> Destinations
     {
         get {  
             lock(DestinationsbyId)
                 return DestinationsbyId.Values;
+        }
+    }
+
+    public IEnumerable<LiveData> AllLiveData
+    {
+        get
+        {
+            foreach (var kv in LiveDataByDestination)
+                foreach (var i in kv.Value)
+                    yield return i;
         }
     }
 
@@ -85,6 +100,24 @@ public class DataCollection
         };
     }
 
+    public EventsDestinationData? GetLastEvents(string destinationId)
+    {
+        if (destinationId == null) throw new ArgumentNullException(nameof(destinationId));
+
+        lock (LastEventsByDestination)
+        {
+            EventsDestinationData ret = new();
+
+            if (!LastEventsByDestination.ContainsKey(destinationId))
+                return ret;
+
+            foreach (var i in LastEventsByDestination[destinationId])
+                if (i is StatusChangedEvent isce)
+                    ret.StatusEvents.Add(isce);
+
+            return ret;
+        }
+    }
 
     public void Set(Destination value)
     {
@@ -134,7 +167,10 @@ public class DataCollection
             else
                 collection = new HashSet<ParkElement>();
 
-            collection.Remove(value);
+            if (collection.Contains(value))
+            {
+                collection.Remove(value);
+            }
             collection.Add(value);
 
             if (!keyExists)
@@ -157,11 +193,67 @@ public class DataCollection
             else
                 collection = new HashSet<LiveData>();
 
-            collection.Remove(value);
+            if (collection.Contains(value))
+            {
+                if (collection.TryGetValue(value, out var last))
+                    onReplace(last, value);
+                collection.Remove(value);
+            }
             collection.Add(value);
 
             if (!keyExists)
                 LiveDataByDestination.Add(key, collection);
         }
+    }
+
+    protected void onReplace(LiveData previous, LiveData next)
+    {
+        var previousAsQueue = previous as Queue;
+        var nextAsQueue = next as Queue;
+
+        if (previousAsQueue == null || nextAsQueue == null)
+            return;
+
+        if (previousAsQueue.Status != nextAsQueue.Status)
+            Add(new StatusChangedEvent
+            {
+                Date = DateTime.Now,
+                DestinationId = next.DestinationId,
+                ParkId = next.ParkId,
+                ParkElementId = next.ParkElementId,
+                OldStatus = previousAsQueue.Status,
+                NewStatus = nextAsQueue.Status
+            });
+
+        /*if(previousAsQueue.Status == Status.OPENED
+        && nextAsQueue.Status == Status.OPENED
+        && previousAsQueue.SingleRiderWaitTime != nextAsQueue.SingleRiderWaitTime)
+            DataManager.Instance.PushEvent(new WaitingTimeChangedEvent
+            {
+                Date = DateTime.Now,
+                DestinationId = next.DestinationId,
+                ParkId = next.ParkId,
+                ParkElementId = next.ParkElementId,
+                OldStatus = previousAsQueue.Status,
+                NewStatus = nextAsQueue.Status
+            });*/
+    }
+
+    protected void Add(Event e)
+    {
+        lock(LastEventsByDestination)
+        {
+            string key = e.DestinationId;
+
+            bool keyExists = LastEventsByDestination.ContainsKey(key);
+            
+            List<Event> collection = keyExists ? LastEventsByDestination[key] : new();
+            collection.Insert(0, e);
+
+            if (collection.Count > MaxEventByDestination)
+                collection.RemoveRange(MaxEventByDestination, collection.Count - MaxEventByDestination);
+        }
+
+        DataManager.Instance.PushEvent(e);
     }
 }

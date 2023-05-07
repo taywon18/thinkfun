@@ -165,7 +165,7 @@ public partial class ListAttractions : ContentPage
     public Microsoft.Maui.Dispatching.IDispatcherTimer UpdateTimer { get; }
     bool InitialFetchDone = false;
 
-    public FastObservableCollection<string> Parks = new FastObservableCollection<string>();
+    public FastObservableCollection<string> Parks = new ();
     bool FreezeParkList = false;
 
     SemaphoreSlim RefresherMutex = new(1);
@@ -181,7 +181,7 @@ public partial class ListAttractions : ContentPage
         await RefreshList();
     }
 
-    FastObservableCollection<ParkItemView> Attractions = new FastObservableCollection<ParkItemView>();
+    FastObservableCollection<ParkItemView> Attractions = new ();
 
     public ListAttractions()
     {
@@ -263,8 +263,8 @@ public partial class ListAttractions : ContentPage
             var interestpoint = parkelement as InterestPoint;
             if (interestpoint != null && currentPosition != null && currentPosition.HasLatitudeLongitude && interestpoint.Position != null)
             {
-                Location here = new Location(currentPosition.Latitude, currentPosition.Longitude);
-                Location destpos = new Location(interestpoint.Position.Latitude, interestpoint.Position.Longitude);
+                Location here = new (currentPosition.Latitude, currentPosition.Longitude);
+                Location destpos = new (interestpoint.Position.Latitude, interestpoint.Position.Longitude);
 
                 var distM = Location.CalculateDistance(here, destpos, DistanceUnits.Kilometers) * 1000;
                 attraction_viewmodel.DistanceDbl = distM;
@@ -275,7 +275,7 @@ public partial class ListAttractions : ContentPage
                 var ld = livedata[parkelement.UniqueIdentifier];
 
                 attraction_viewmodel.LiveData = ld;
-            }
+            }   
 
             newView.Add(attraction_viewmodel);
         }

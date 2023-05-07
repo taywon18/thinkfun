@@ -13,3 +13,8 @@ public class LiveDestinationData
 {
     public List<Queue> Queues { get; set; } = new List<Queue>();
 }
+
+public class EventsDestinationData
+{
+    public List<StatusChangedEvent> StatusEvents { get; set; } = new ();
+}
