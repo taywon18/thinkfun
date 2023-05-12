@@ -81,8 +81,6 @@ public class DataManager
         await SaveLiveDataIfNeeded();
         var saveTime = DateTime.Now - before;
 
-        LogManager.Debug($"Saving live data update took {saveTime}.");
-
         if (FlushLiveDataTimer != null && FlushLiveDataTimer.Interval < (updateTime + saveTime).TotalMilliseconds)
             LogManager.Warn($"Live data update and save took {(updateTime + saveTime).TotalSeconds}s ({updateTime.TotalMilliseconds}ms + {saveTime.TotalMilliseconds}ms), but the timer interval is {FlushLiveDataTimer.Interval/1000}s.");
         else

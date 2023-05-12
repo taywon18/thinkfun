@@ -69,13 +69,13 @@ public partial class ParkChoice : ContentPage
             CharacterSpacing = 0.5
         };
 
-        string text = "This is a Snackbar";
+        /*string text = "This is a Snackbar";
         string actionButtonText = "Click Here to Dismiss";
         Action action = async () => await DisplayAlert("Snackbar ActionButton Tapped", "The user has tapped the Snackbar ActionButton", "OK");
         TimeSpan duration = TimeSpan.FromSeconds(3);
 
         var snackbar = Snackbar.Make(text, action, actionButtonText, duration, snackbarOptions);
-        await snackbar.Show();
+        await snackbar.Show();*/
     }
 
     private async void ParkList_ItemSelected(object sender, SelectedItemChangedEventArgs e)

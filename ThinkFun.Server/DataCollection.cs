@@ -13,7 +13,7 @@ public class DataCollection
     public Dictionary<string, HashSet<LiveData>> LiveDataByDestination { get; private set; } = new();
     public Dictionary<string, List<Event>> LastEventsByDestination { get; private set; } = new ();
 
-    public int MaxEventByDestination = 10;
+    public int MaxEventByDestination = 20;
 
     public IEnumerable<Destination> Destinations
     {
@@ -249,6 +249,8 @@ public class DataCollection
             
             List<Event> collection = keyExists ? LastEventsByDestination[key] : new();
             collection.Insert(0, e);
+            if (!keyExists)
+                LastEventsByDestination.Add(key, collection);
 
             if (collection.Count > MaxEventByDestination)
                 collection.RemoveRange(MaxEventByDestination, collection.Count - MaxEventByDestination);

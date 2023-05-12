@@ -3,7 +3,8 @@ using Map = ThinkFun.Views.Map;
 
 namespace ThinkFun
 {
-    public partial class AppShell : Shell
+    public partial class AppShell 
+        : Shell
     {
         public bool HaveDestination
         {
@@ -22,7 +23,9 @@ namespace ThinkFun
 
         protected override async void OnAppearing()
         {
-            if(HaveDestination)
+            base.OnAppearing();
+
+            if (HaveDestination)
             {
                 await GoToAsync("//Attractions");
             }
