@@ -77,8 +77,14 @@ public class LocationManager
             return true;
 
         Retry++;
-        PermissionStatus status = await Permissions.CheckStatusAsync<Permissions.LocationAlways>();
-        if(status == PermissionStatus.Granted)
+
+        PermissionStatus status = default;
+        await MainThread.InvokeOnMainThreadAsync(async () =>
+        {
+            status = await Permissions.CheckStatusAsync<Permissions.LocationAlways>();
+        });
+
+        if (status == PermissionStatus.Granted)
         {
             Allowed = true;
             return true;

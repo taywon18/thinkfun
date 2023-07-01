@@ -31,7 +31,7 @@ public class ThemeParkWikiSource
         var destinations = await Client.GetFromJsonAsync< DestinationList >("destinations", t);
         foreach(var destination in destinations.destinations)
         {
-            if (destination.slug != "disneylandparis")
+            if (destination.slug != "disneylandparis" && destination.slug != "parcasterix")
                 continue;
 
             LogManager.Debug($"Updating destination {destination.name} ({destination.id}).");

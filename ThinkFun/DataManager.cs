@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿
+using System.ComponentModel;
 using System.Net.Http.Json;
 using System.Text.Json;
 using ThinkFun.Model;
@@ -230,6 +231,8 @@ public class DataManager
         }
         await UpdateStaticDataSemaphore.WaitAsync(tk);
 
+        var dt = DateTime.Now;
+
         if (tk.IsCancellationRequested)
             return false;
             
@@ -258,6 +261,8 @@ public class DataManager
             Console.WriteLine(ex);
         }
 
+        Console.WriteLine($"Updated static data in {(DateTime.Now - dt).TotalMilliseconds}ms.");
+
         UpdateStaticDataSemaphore.Release();
         return true;
     }
@@ -275,9 +280,10 @@ public class DataManager
         }
         await UpdateLiveDataSemaphore.WaitAsync(tk);
 
-
         if (tk.IsCancellationRequested)
             return false;
+
+        var dt = DateTime.Now;
 
         string dest = DestinationId;
 
@@ -295,6 +301,8 @@ public class DataManager
         { 
             Console.WriteLine(ex);
         }
+
+        Console.WriteLine($"Updated dynamic data in { (DateTime.Now - dt).TotalMilliseconds }ms.");
 
         UpdateLiveDataSemaphore.Release();
         return true;

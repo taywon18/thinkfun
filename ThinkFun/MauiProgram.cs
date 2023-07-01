@@ -21,7 +21,7 @@ public static class MauiProgram
         #if ANDROID
             Android.Content.Intent intent = new Android.Content.Intent(Android.App.Application.Context, typeof(ThinkFun.Platforms.Android.ForegroundService));
             Android.App.Application.Context.StartForegroundService(intent);
-            Android.App.Application.Context.StopService(intent);
+            //Android.App.Application.Context.StopService(intent);
         #endif
 
         return builder.Build();

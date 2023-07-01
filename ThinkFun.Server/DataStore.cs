@@ -81,9 +81,13 @@ public class DataStore
 
     public async Task Add(IEnumerable<LiveData> ld, CancellationToken token = default)
     {
+        var lst = ld.ToList();
+        if (lst.Count == 0)
+            return;
+
         try
         {
-            await LiveDataCollection.InsertManyAsync(ld, new InsertManyOptions
+            await LiveDataCollection.InsertManyAsync(lst, new InsertManyOptions
             {
                 IsOrdered = false
             }, cancellationToken: token);

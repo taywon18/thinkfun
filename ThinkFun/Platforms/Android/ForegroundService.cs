@@ -39,7 +39,7 @@ public class ForegroundService
         if (intent.Action == "START_SERVICE")
         {
             //RegisterNotification();//Proceed to notify
-            //startForegroundService();
+            startForegroundService();
         }
         else if (intent.Action == "STOP_SERVICE")
         {
@@ -83,7 +83,7 @@ public class ForegroundService
            .SetOngoing(true)
            .Build();
 
-        StartForeground(100, notification);
+        StartForeground(NOTIFICATION_ID, notification);
 
     }
 
