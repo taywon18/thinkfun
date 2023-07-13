@@ -11,6 +11,7 @@ public class ThemeParkWikiSource
     public const string CommonIdKey = "common";
     public bool UseParkPositionForDestinationIfUnknown = true;
     HttpClient Client;
+    
 
     public ThemeParkWikiSource()
     {
@@ -31,7 +32,8 @@ public class ThemeParkWikiSource
         var destinations = await Client.GetFromJsonAsync< DestinationList >("destinations", t);
         foreach(var destination in destinations.destinations)
         {
-            if (destination.slug != "disneylandparis" && destination.slug != "parcasterix")
+            if (DataManager.Instance.DestinationFilter.Count != 0 
+                && !DataManager.Instance.DestinationFilter.Contains(destination.slug.ToLower()))
                 continue;
 
             LogManager.Debug($"Updating destination {destination.name} ({destination.id}).");

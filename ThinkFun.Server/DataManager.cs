@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MongoDB.Driver.Core.Configuration;
+using System;
 using System.Text.Json;
 using ThinkFun.Model;
 using ThinkFun.Server.Sources;
@@ -8,6 +9,13 @@ namespace ThinkFun.Server;
 
 public class DataManager
 {
+    private class Config
+    {
+        public HashSet<string>? DestinationFilter { get; set; } = new();
+
+        public HashSet<string>? Providers { get; set; } = new();
+    }
+
     public static DataManager Instance { get;  } = new DataManager();
 
     const double SaveTimeMinutes = 5;
@@ -18,11 +26,50 @@ public class DataManager
 
     List<IDataSource> sources = new List<IDataSource>();
 
+    public HashSet<string> DestinationFilter { private set; get; } = new();
+
     public DateTime? LastSave = null;
 
     private DataManager() 
     {
-        sources.Add(new Sources.ThemeParkWiki.ThemeParkWikiSource());
+    }
+
+    public async Task Configure(IConfiguration conf, CancellationToken tk = default)
+    {
+        var config = conf.Get<Config>();
+
+        if (config == null)
+        {
+            LogManager.Critical("Cannot load Manager configuration.");
+            return;
+        }
+
+        if(config.Providers == null || config.Providers.Count == 0)
+        {
+            LogManager.Critical("Not any source provided.");
+            return;
+        }
+
+        foreach(var i in config.Providers)
+        {
+            if(i.ToLower() == "themeparkwiki")
+                sources.Add(new Sources.ThemeParkWiki.ThemeParkWikiSource());
+            else
+                LogManager.Critical($"Unknown source {i}.");
+        }
+        
+
+
+
+
+        if (config.DestinationFilter != null)
+        {
+            DestinationFilter.Clear();
+            DestinationFilter = config.DestinationFilter;
+
+            LogManager.Information($"Ignoring {String.Join(",",DestinationFilter)}.");
+            return;
+        }
     }
 
     public async Task Start()
@@ -85,10 +132,6 @@ public class DataManager
             LogManager.Warn($"Live data update and save took {(updateTime + saveTime).TotalSeconds}s ({updateTime.TotalMilliseconds}ms + {saveTime.TotalMilliseconds}ms), but the timer interval is {FlushLiveDataTimer.Interval/1000}s.");
         else
             LogManager.Debug($"Live data update and save took {(updateTime + saveTime).TotalSeconds}s ({updateTime.TotalMilliseconds}ms + {saveTime.TotalMilliseconds}ms).");
-    }
-
-    public void Init()
-    {
     }
 
     public async Task SaveLiveDataIfNeeded(CancellationToken tk = default)

@@ -41,6 +41,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 DataStore.Instance.Configure(builder.Configuration.GetSection("Database")).Wait();
+DataManager.Instance.Configure(builder.Configuration.GetSection("Manager")).Wait();
 
 var app = builder.Build();
 
