@@ -382,9 +382,4 @@ public partial class ListAttractions
         await RefreshList();
         FreezeParkList = false;
     }
-
-    private async void ImageButton_Clicked(object sender, EventArgs e)
-    {
-        await RefreshList(true);
-    }
 }

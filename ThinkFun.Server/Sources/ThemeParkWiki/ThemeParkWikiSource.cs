@@ -9,7 +9,7 @@ public class ThemeParkWikiSource
 {
     public const string ExternalIdKey = "tpw";
     public const string CommonIdKey = "common";
-    public bool UseParkPositionForDestinationIfUnknown = true;
+    public bool ComputePositionIfMissing = true;
     HttpClient Client;
     
 
@@ -36,7 +36,7 @@ public class ThemeParkWikiSource
                 && !DataManager.Instance.DestinationFilter.Contains(destination.slug.ToLower()))
                 continue;
 
-            LogManager.Debug($"Updating destination {destination.name} ({destination.id}).");
+            //LogManager.Debug($"Updating destination {destination.name} ({destination.id}).");
 
             try
             {
@@ -74,6 +74,7 @@ public class ThemeParkWikiSource
                 Longitude = destination_as_entity.location.longitude
             };
 
+        List<Position> parksPos = new();
         foreach (var park in destination.parks)
         {
             var park_as_model = await UpdateStaticDataForPark(collection, destination.slug, park, t);
@@ -81,16 +82,20 @@ public class ThemeParkWikiSource
             if (park_as_model == null)
                 continue;
 
-            if (UseParkPositionForDestinationIfUnknown && destination_model.Position == null && park_as_model.Position != null)
-            {
-                destination_model.Position = park_as_model.Position;
-                LogManager.Debug($"No geodata for destination {destination_as_entity.name}, using geodata of park {park_as_model.Name}.");
-            }
-                
+            if (park_as_model.Position != null && !park_as_model.Position.IsZero())
+                parksPos.Add(park_as_model.Position);
         }
 
-        if(destination_as_entity.location != null)
-            LogManager.Debug($"No geodata for destination {destination_as_entity.name}.");
+        if (ComputePositionIfMissing && destination_model.Position == null && parksPos.Count > 0)
+        {
+            destination_model.Position = Position.MidCenter(parksPos);
+            LogManager.Debug($"Guessing position {destination_model.Position} for destination {destination_as_entity.name}.");
+        }
+
+
+        
+        if (destination_model.Position == null)
+            LogManager.Warn($"No geodata for destination {destination_as_entity.name}.");
 
         if(FlushDestinations)
             collection.Set(destination_model);
@@ -114,6 +119,7 @@ public class ThemeParkWikiSource
                         {ExternalIdKey,  park.name},
                     }
         };
+
         if (park_as_entity.location != null)
         {
             park_as_model.Position = new Model.Position
@@ -122,14 +128,12 @@ public class ThemeParkWikiSource
                 Longitude = park_as_entity.location.longitude
             };
         }
-        else
-            LogManager.Debug($"No geodata for park {park.name}.");
-
 
         if(FlushParks)
             collection.Set(park_as_model);
 
         var attractions = await Client.GetFromJsonAsync<ChildenList>("entity/" + park.id + "/children", t);
+        List<Position> attractionsPos = new();
         foreach (var attraction in attractions.children)
         {
             try
@@ -137,13 +141,25 @@ public class ThemeParkWikiSource
                 var attr = await ChildEntityToParkElement(attraction, park_as_model, t);
                 if(FlushElements)
                     collection.Set(attr);
+
+                if(attr is InterestPoint ip && ip.Position != null && !ip.Position.IsZero())
+                    attractionsPos.Add(ip.Position);
             }
             catch (Exception e)
             {
                 LogManager.Debug($"Failed to parse {attraction.name} ({attraction.id}): {e}.");
             }
         }
-        
+
+        if(ComputePositionIfMissing && (park_as_model.Position == null || park_as_model.Position.IsZero() ) && attractionsPos.Count > 0)
+        {
+            park_as_model.Position = Position.MidCenter(attractionsPos);
+            LogManager.Debug($"Guessing position {park_as_model.Position} for park {park_as_model.Name}.");
+        }
+
+        if (park_as_model.Position == null)
+            LogManager.Warn($"No geodata for park {park_as_model.Name}.");
+
         return park_as_model;
     }
 
@@ -189,6 +205,7 @@ public class ThemeParkWikiSource
                 Latitude = attraction_as_entity.location.latitude,
                 Longitude = attraction_as_entity.location.longitude
             };
+
         else
             LogManager.Debug($"No geodata for {child.entityType} {attraction_as_entity.name} ({attraction_as_entity.id}) at {park.Name}.");
 

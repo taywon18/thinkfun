@@ -4,22 +4,155 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:ThinkFun"
-    xmlns:views="clr-namespace:ThinkFun.Views">
+    xmlns:views="clr-namespace:ThinkFun.Views"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit">
+
+    <Shell.Resources>
+        <ResourceDictionary>
+            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+        </ResourceDictionary>
+    </Shell.Resources>
+
+
+    <Shell.TitleView>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <ImageButton
+                IsVisible="{Binding IsListeningLocation, Converter={StaticResource InvertedBoolConverter}}"
+                Source="location.png"
+                Clicked="OnStartLocationListening"
+                Aspect="AspectFit"
+                WidthRequest="64"
+                HorizontalOptions="End"
+                Padding="5">
+                <ImageButton.Behaviors>
+                    <toolkit:IconTintColorBehavior TintColor="White" />
+                </ImageButton.Behaviors>
+            </ImageButton>
+
+            <ImageButton
+                IsVisible="{Binding IsListeningLocation}"
+                Source="location.png"
+                Clicked="OnStopLocationListening"
+                Aspect="AspectFit"
+                WidthRequest="64"
+                HorizontalOptions="End"
+                Padding="5">
+                <ImageButton.Behaviors>
+                    <toolkit:IconTintColorBehavior TintColor="Green" />
+                </ImageButton.Behaviors>
+            </ImageButton>
+
+            <ImageButton
+                IsVisible="{Binding IsBackgroundWatching, Converter={StaticResource InvertedBoolConverter}}"
+                Source="glasses.png"
+                Clicked="OnStartBackgroundListening"
+                Aspect="AspectFit"
+                WidthRequest="64"
+                HorizontalOptions="End"
+                Grid.Column="1"
+                Padding="5">
+                <ImageButton.Behaviors>
+                    <toolkit:IconTintColorBehavior TintColor="White" />
+                </ImageButton.Behaviors>
+            </ImageButton>
+
+            <ImageButton
+                IsVisible="{Binding IsBackgroundWatching}"
+                Source="glasses.png"
+                Clicked="OnStopBackgroundListening"
+                Aspect="AspectFit"
+                WidthRequest="64"
+                HorizontalOptions="End"
+                Grid.Column="1"
+                Padding="5">
+                <ImageButton.Behaviors>
+                    <toolkit:IconTintColorBehavior TintColor="Green" />
+                </ImageButton.Behaviors>
+            </ImageButton>
+
+        </Grid>
+
+    </Shell.TitleView>
+
+    <Shell.FlyoutHeader>
+        <StackLayout>
+            <Label Text="❌ Mode non connecté"
+                TextColor="Red"
+                HorizontalOptions="Center">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer 
+                        Command="{Binding BuyMeACoffre}"/>
+                </Label.GestureRecognizers>
+            </Label>
+            <Image 
+                Aspect="AspectFit"
+                Source="icon.png"
+                VerticalOptions="EndAndExpand"
+                HeightRequest="200"
+                />
+        </StackLayout>
+    </Shell.FlyoutHeader>
 
 
     <ShellContent 
                 Title="Accueil"
                 ContentTemplate="{DataTemplate views:ParkChoice}"
+                Icon="home.png"
+                Route="Destinations"
                 />
     <ShellContent 
                 Title="Liste des attractions"
                 IsVisible="{Binding HaveDestination}"
                 ContentTemplate="{DataTemplate views:ListAttractions}"
+                Icon="list.png"
+                Route="Attractions"
                 />
 
     <ShellContent 
                 Title="Carte"
+                Icon="map.png"
                 IsVisible="{Binding HaveDestination}"
                 ContentTemplate="{DataTemplate views:Map}"
+                Route="Map"
                 />
+
+    <ShellContent 
+                Title="Voyage en cours"
+                Icon="plane.png"
+                IsVisible="{Binding HaveDestination}"
+                ContentTemplate="{DataTemplate views:CurrentTrip}"
+                Route="Trip"
+                />
+
+    <Shell.FlyoutFooter>
+        <StackLayout>
+            <Label Text="ThinkFun"
+               FontAttributes="Bold"
+               HorizontalOptions="Center" />
+
+
+
+                <Label Text="Fait avec amour par @Taywon" HorizontalOptions="Center"/>
+
+
+
+                <StackLayout Orientation="Horizontal" HorizontalOptions="Center">
+                <Label Text="☕ M'offrir un café ☺"
+                TextColor="Green"
+                HorizontalOptions="Center">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer 
+                        Command="{Binding BuyMeACoffre}"/>
+                    </Label.GestureRecognizers>
+                </Label>
+
+
+            </StackLayout>
+        </StackLayout>
+    </Shell.FlyoutFooter>
 </Shell>

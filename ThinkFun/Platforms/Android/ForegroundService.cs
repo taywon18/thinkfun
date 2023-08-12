@@ -84,7 +84,5 @@ public class ForegroundService
            .Build();
 
         StartForeground(NOTIFICATION_ID, notification);
-
     }
-
 }

@@ -51,16 +51,10 @@ public class DataManager
         }
 
         foreach(var i in config.Providers)
-        {
             if(i.ToLower() == "themeparkwiki")
                 sources.Add(new Sources.ThemeParkWiki.ThemeParkWikiSource());
             else
                 LogManager.Critical($"Unknown source {i}.");
-        }
-        
-
-
-
 
         if (config.DestinationFilter != null)
         {

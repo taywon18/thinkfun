@@ -1,7 +1,9 @@
 ﻿namespace ThinkFun.Server;
 
+using DevOne.Security.Cryptography.BCrypt;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using System.Collections.Generic;
 using ThinkFun.Model;
 using Wood;
 
@@ -11,12 +13,15 @@ public class DataStore
 
     private IMongoCollection<LiveData> LiveDataCollection;
     private IMongoCollection<Event> EventCollection;
+    private IMongoCollection<User> UserCollection;
 
     private string ConnectionString = "";
     private string DatabaseName = "";
     private string LiveDataCollectionName = "";
     private string EventCollectionName = "";
+    private string UserCollectionName = "";
 
+    private string PasswordSalt = String.Empty; //TODO: load
 
     public DataStore()
     {
@@ -48,16 +53,38 @@ public class DataStore
             LogManager.Error($"Cannot configure storage without database {nameof(EventCollectionName)} value.");
             return;
         }
+        
+        if (conf[nameof(UserCollectionName)] == null)
+        {
+            LogManager.Error($"Cannot configure storage without database {nameof(UserCollectionName)} value.");
+            return;
+        }
 
         var mongoClient = new MongoClient(conf[nameof(ConnectionString)]);
         var mongoDatabase = mongoClient.GetDatabase(conf[nameof(DatabaseName)]);
         LiveDataCollection = mongoDatabase.GetCollection<LiveData>(conf[nameof(LiveDataCollectionName)]);
         EventCollection = mongoDatabase.GetCollection<Event>(conf[nameof(EventCollectionName)]);
+        UserCollection = mongoDatabase.GetCollection<User>(conf[nameof(UserCollectionName)]);
 
         await LiveDataCollection.Indexes.CreateOneAsync(
             Builders<LiveData>.IndexKeys.Descending(x => x.LastUpdate).Ascending(x => x.ParkElementId),
             new CreateIndexOptions() { Unique = true},
             tk);
+
+
+        await UserCollection.Indexes.CreateOneAsync(
+            Builders<User>.IndexKeys.Descending(x => x.Name),
+            new CreateIndexOptions() { Unique = true },
+            tk);
+
+
+        if (conf[nameof(PasswordSalt)] != null)
+        {
+            PasswordSalt = conf[nameof(PasswordSalt)];
+        }
+        else
+            LogManager.Alert($"No password salt defined... Use this one: {BCryptHelper.GenerateSalt(10)}");
+
     }
 
 
@@ -101,5 +128,45 @@ public class DataStore
     public async Task Add(Event e, CancellationToken tk = default)
     {
         await EventCollection.InsertOneAsync(e, tk);
+    }
+
+    public async Task<User> Register(RegisterRequest req, CancellationToken tk = default)
+    {
+        string hash = DevOne.Security.Cryptography.BCrypt.BCryptHelper.HashPassword(req.Password, PasswordSalt);
+        var user = new User
+        {
+            Identifier = Guid.NewGuid().ToString(),
+            Name = req.Name,
+            PasswordHash = hash,
+        };
+
+        await UserCollection.InsertOneAsync(user, cancellationToken: tk);
+
+        return user;
+    }
+
+    public async Task<User?> Login(LoginRequest req, CancellationToken tk = default)
+    {
+        var cursor = await UserCollection.FindAsync(x => x.Name == req.Name, cancellationToken: tk);
+        if (!await cursor.MoveNextAsync(tk) || !cursor.Current.Any())
+            return null;
+
+        var user = cursor.Current.First();
+        if (user.PasswordHash != DevOne.Security.Cryptography.BCrypt.BCryptHelper.HashPassword(req.Password, PasswordSalt))
+            return null;
+
+        return user;
+    }
+
+    public async Task<User> GetUser(string username, CancellationToken tk = default)
+    {
+        var cursor = await UserCollection.FindAsync(x => x.Name == username, cancellationToken: tk);
+        if (!await cursor.MoveNextAsync(tk) || !cursor.Current.Any())
+            return null;
+
+        var user = cursor.Current.First();
+        user.PasswordHash = "";
+
+        return user;
     }
 }

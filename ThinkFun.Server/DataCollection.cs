@@ -1,20 +1,28 @@
-﻿using Microsoft.AspNetCore.DataProtection.KeyManagement;
-using ThinkFun.Model;
-using static System.Net.Mime.MediaTypeNames;
+﻿using ThinkFun.Model;
+using ThinkFun.Server.Sources.ThemeParkWiki;
+using Destination = ThinkFun.Model.Destination;
+using LiveData = ThinkFun.Model.LiveData;
+using Park = ThinkFun.Model.Park;
 
 namespace ThinkFun.Server;
 
 public class DataCollection
 {
-    public Dictionary<string, Destination> DestinationsbyId { get; private set; } = new ();
-    public Dictionary<string, HashSet<Park>> ParksByDestinations { get; private set; } = new ();
-    public Dictionary<string, HashSet<ParkElement>> PointsByParks { get; private set; } = new ();
+    //By Id
+    public Dictionary<string, Model.Destination> DestinationsbyId { get; private set; } = new ();
+    public Dictionary<string, Model.Park> ParksbyId { get; private set; } = new ();
+    public Dictionary<string, ParkElement> ParkElementsbyId { get; private set; } = new ();
 
-    public Dictionary<string, HashSet<LiveData>> LiveDataByDestination { get; private set; } = new();
+    //by destination
+    public Dictionary<string, HashSet<Model.Park>> ParksByDestinations { get; private set; } = new();
+    public Dictionary<string, HashSet<Model.LiveData>> LiveDataByDestination { get; private set; } = new();
     public Dictionary<string, List<Event>> LastEventsByDestination { get; private set; } = new ();
 
-    public int MaxEventByDestination = 20;
+    //by parks
+    public Dictionary<string, HashSet<ParkElement>> PointsByParks { get; private set; } = new();
 
+    public int MaxEventByDestination = 20;
+      
     public IEnumerable<Destination> Destinations
     {
         get {  
@@ -136,6 +144,7 @@ public class DataCollection
         lock (ParksByDestinations)
         {
             string key = value.ParentId;
+            var id = value.UniqueIdentifier;
             bool keyExists = ParksByDestinations.ContainsKey(key);
 
             HashSet<Park> collection;
@@ -149,6 +158,11 @@ public class DataCollection
 
             if(!keyExists)
                 ParksByDestinations.Add(key, collection);
+
+            if (ParksbyId.ContainsKey(id))
+                ParksbyId[id] = value;
+            else
+                ParksbyId.Add(id, value);
         }
     }
 
@@ -159,6 +173,7 @@ public class DataCollection
         lock (ParksByDestinations)
         {
             string key = value.ParentId;
+            var id = value.UniqueIdentifier;
             bool keyExists = PointsByParks.ContainsKey(key);
 
             HashSet<ParkElement> collection;
@@ -175,6 +190,11 @@ public class DataCollection
 
             if (!keyExists)
                 PointsByParks.Add(key, collection);
+
+            if (ParkElementsbyId.ContainsKey(id))
+                ParkElementsbyId[id] = value;
+            else
+                ParkElementsbyId.Add(id, value);
         }
     }
 
@@ -203,6 +223,8 @@ public class DataCollection
 
             if (!keyExists)
                 LiveDataByDestination.Add(key, collection);
+
+
         }
     }
 
@@ -258,4 +280,39 @@ public class DataCollection
 
         DataManager.Instance.PushEvent(e);
     }
+
+    public Model.Destination? GetDestination(string id)
+    {
+        lock(DestinationsbyId)
+        {
+            if (DestinationsbyId.TryGetValue(id, out var destination))
+                return destination;
+        }
+
+        return null;
+    }
+
+    public Model.Park? GetPark(string id)
+    {
+        lock (DestinationsbyId)
+        {
+            if (ParksbyId.TryGetValue(id, out var park))
+                return park;
+        }
+
+        return null;
+    }
+
+    public Model.ParkElement? GetParkElement(string id)
+    {
+        lock (DestinationsbyId)
+        {
+            if (ParkElementsbyId.TryGetValue(id, out var elem))
+                return elem;
+        }
+
+        return null;
+    }
+
+
 }

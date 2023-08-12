@@ -3,17 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ThinkFun.Views.ListAttractions"
              Title="Liste des attractions">
-
-    <Shell.TitleView>
-        <ImageButton
-                VerticalOptions="Center"
-                HorizontalOptions="End"
-                Source="location.png"
-                Clicked="ImageButton_Clicked"
-                Aspect="AspectFit"
-                />
-    </Shell.TitleView>
-
     <StackLayout 
         Padding="20"
         Orientation="Vertical">
