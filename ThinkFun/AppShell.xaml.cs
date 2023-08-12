@@ -25,6 +25,8 @@ namespace ThinkFun
         {
             base.OnAppearing();
 
+            NotificationService.Instance.Init();
+
             if (HaveDestination)
             {
                 await GoToAsync("//Attractions");

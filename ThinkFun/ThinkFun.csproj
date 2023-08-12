@@ -59,6 +59,16 @@
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
+	<!-- <ItemGroup>
+	  <MauiXaml Remove="Views\EventList.xaml" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Views\EventList.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </EmbeddedResource>
+	</ItemGroup> -->
+
 	<ItemGroup>
 	  <PackageReference Include="CommunityToolkit.Maui" Version="5.1.0" />
 	  <PackageReference Include="Geolocator.Plugin" Version="1.0.2" />
@@ -92,6 +102,10 @@
 	  <MauiXaml Update="Views\ParkChoice.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+		<MauiXaml Update="Views\EventList.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		
 	</ItemGroup>
 
 </Project>

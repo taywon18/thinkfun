@@ -14,8 +14,9 @@ public class DataManager
 
     List<Destination> AllDestinations = null;
     List<Park> Parks { get; } = new List<Park>();
-    List<ParkElement> Elements { get; } = new List<ParkElement>();
+    Dictionary<string, ParkElement> Elements { get; } = new ();
     List<LiveData> LiveDatas { get; } = new List<LiveData>();
+    Dictionary<string, RichEvent> Events { get; } = new ();
     IDispatcherTimer UpdateTime, SaveConfigTimer;
     SemaphoreSlim UpdateLiveDataSemaphore = new SemaphoreSlim(1);
     SemaphoreSlim UpdateStaticDataSemaphore = new SemaphoreSlim(1);
@@ -77,8 +78,24 @@ public class DataManager
 
             List<ParkElement> ret;
             lock (Elements)
-                ret = new List<ParkElement>(Elements);
+                ret = new List<ParkElement>(Elements.Values);
 
+            return ret;
+        }
+    }
+
+    public List<RichEvent> BufferedEvents
+    {
+        get
+        {
+            if (Events == null)
+                return new();
+
+            var ret = new List<RichEvent>();
+            lock (Events)
+                ret.AddRange(Events.Values);
+
+            ret.Sort((a, b) => b.Event.Date.CompareTo(a.Event.Date));
             return ret;
         }
     }
@@ -208,13 +225,25 @@ public class DataManager
     {
         if(DestinationId  == null) return;
 
-
         await UpdateDynamicData();
+        await UpdateEvents();
     }
 
     public async Task FlushDestinations(CancellationToken tk = default)
     {
         AllDestinations = await Client.GetFromJsonAsync<List<Destination>>("Data/GetDestinations", tk);
+    }
+
+    //todo: Optimize -_-'
+    public ParkElement? GetParkElementById(string id)
+    {
+        lock(Elements)
+        {
+            if (Elements.TryGetValue(id, out var parkElement))
+                return parkElement;
+        }
+
+        return null;
     }
 
     public async Task<bool> UpdateStaticData(CancellationToken tk = default)
@@ -248,9 +277,10 @@ public class DataManager
             lock (Elements)
             {
                 Elements.Clear();
-                Elements.AddRange(static_data.Restaurants);
-                Elements.AddRange(static_data.Shows);
-                Elements.AddRange(static_data.Attractions);
+                foreach (var i in Enumerable.Union<ParkElement>(Enumerable.Union<ParkElement>(static_data.Restaurants, static_data.Shows), static_data.Attractions))
+                    if (!Elements.TryAdd(i.UniqueIdentifier, i))
+                        Console.WriteLine($"Cannot add element with the same id ({i.UniqueIdentifier}).");
+
                 LastStaticUpdate = DateTime.Now;
             }
         }
@@ -298,5 +328,57 @@ public class DataManager
 
         UpdateLiveDataSemaphore.Release();
         return true;
+    }
+
+    public async Task UpdateEvents(CancellationToken tk = default)
+    {
+        string dest = DestinationId;
+
+        try
+        {
+            var events_data = await Client.GetFromJsonAsync<EventsDestinationData>("Data/GetLastEvents/" + dest, tk);
+            TryPush(events_data.StatusEvents);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    public void TryPush(IEnumerable<Event> events)
+    {
+        lock(Events)
+        {
+            if (Events.Count == 0)
+            {
+                foreach (var i in events)
+                    Events.TryAdd(i.UniqueId, new RichEvent(i));
+                return;
+            }
+
+            if (DataManager.Instance.Elements.Count == 0)
+                return;
+
+            foreach(var i in events)
+                if(Events.TryAdd(i.UniqueId, new RichEvent(i)))
+                    onNewEvent(i);
+        }
+    }
+
+    private void onNewEvent(Event e)
+    {
+        if(e is StatusChangedEvent sce)
+        {
+            string attractionName = DataManager.Instance.GetParkElementById(e.ParkElementId).Name;
+            if(attractionName == null)
+            {
+                Console.WriteLine($"Unknown id {e.ParkElementId}.");
+                return;
+            }
+
+            string statut = sce.NewStatus == Status.OPENED ? "d'ouvrir" : "de fermer";
+            NotificationService.Instance.Notify($"{attractionName} vient {statut}.", $"{attractionName} vient {statut}.");
+        }
+        
     }
 }

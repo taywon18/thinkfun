@@ -18,6 +18,12 @@
                 />
 
     <ShellContent 
+                Title="Evènements"
+                IsVisible="{Binding HaveDestination}"
+                ContentTemplate="{DataTemplate views:EventList}"
+                />
+
+    <ShellContent 
                 Title="Carte"
                 IsVisible="{Binding HaveDestination}"
                 ContentTemplate="{DataTemplate views:Map}"
