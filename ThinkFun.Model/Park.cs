@@ -5,5 +5,5 @@ public class Park
 {
     public string Name { get; set; } = "";
     public string ParentId { get; set; } = "";
-    public Position Position { get; set; } = new Position();
+    public Position? Position { get; set; } = null;
 }

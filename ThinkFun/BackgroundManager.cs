@@ -1,0 +1,49 @@
+﻿using Microsoft.Maui.Controls.PlatformConfiguration;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ThinkFun;
+
+public class BackgroundManager
+{
+    static public BackgroundManager Instance { get; } = new BackgroundManager();
+
+#if ANDROID
+    Android.Content.Intent Intend;
+#endif
+
+    public bool IsWorking
+    {
+        get
+        {
+            #if ANDROID
+                return Intend != null;
+            #endif
+            throw new NotImplementedException();
+        }
+    }
+
+    public void StartWorkingBackground()
+    {
+#if ANDROID
+        if(Intend != null)
+            StopWorkingBackground();
+
+        Intend = new Android.Content.Intent(Android.App.Application.Context, typeof(ThinkFun.Platforms.Android.ForegroundService));
+        Android.App.Application.Context.StartForegroundService(Intend);  
+#endif
+    }
+
+    public void StopWorkingBackground()
+    {
+#if ANDROID
+        Android.Content.Intent intent = new Android.Content.Intent(Android.App.Application.Context, typeof(ThinkFun.Platforms.Android.ForegroundService));
+            intent.SetAction("STOP_SERVICE");
+         MainActivity.ActivityCurrent.StartService(intent);
+         Intend = null;
+#endif
+    }
+}

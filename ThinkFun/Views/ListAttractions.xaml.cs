@@ -9,7 +9,8 @@ using CommunityToolkit.Maui.Alerts;
 namespace ThinkFun.Views;
 
 
-public partial class ListAttractions : ContentPage
+public partial class ListAttractions 
+    : ContentPage
 {
     public class ParkItemView
        : INotifyPropertyChanged
@@ -223,67 +224,77 @@ public partial class ListAttractions : ContentPage
             return;
         await RefresherMutex.WaitAsync();
 
+        var dt = DateTime.Now;
+
         IsRefreshing = true;
         OnPropertyChanged(nameof(IsRefreshing));
 
         if (forceRefresh)
             await DataManager.Instance.Update();
 
-        var staticdata = await DataManager.Instance.GetStaticDataBuffered();
-        var rawlivedata = await DataManager.Instance.GetLiveDataBuffered();
-        var livedata = new Dictionary<string, Model.LiveData>(rawlivedata);
-        GeolocatorPlugin.Abstractions.Position? currentPosition;
-        if (forceRefresh)
-            currentPosition = await LocationManager.Instance.GetPositionAsync();
-        else
-            currentPosition = await LocationManager.Instance.GetPositionBuffered();
+        IEnumerable<ParkItemView> newViewFilteredAndOrdered = new List<ParkItemView>();
 
-        if(!FreezeParkList)
+        await Task.Run(async () =>
+        {
+            var staticdata = await DataManager.Instance.GetStaticDataBuffered();
+            var rawlivedata = await DataManager.Instance.GetLiveDataBuffered();
+            var livedata = new Dictionary<string, Model.LiveData>(rawlivedata);
+            GeolocatorPlugin.Abstractions.Position? currentPosition;
+            if (forceRefresh)
+                currentPosition = await LocationManager.Instance.GetPositionAsync();
+            else
+                currentPosition = await LocationManager.Instance.GetPositionBuffered();
+
+            var newView = new List<ParkItemView>();
+            foreach (var parkelement in staticdata)
+            {
+                ParkItemView attraction_viewmodel = new(this)
+                {
+                    ParkElement = parkelement
+                };
+
+                var interestpoint = parkelement as InterestPoint;
+                if (interestpoint != null && currentPosition != null && currentPosition.HasLatitudeLongitude && interestpoint.Position != null)
+                {
+                    Location here = new(currentPosition.Latitude, currentPosition.Longitude);
+                    Location destpos = new(interestpoint.Position.Latitude, interestpoint.Position.Longitude);
+
+                    var distM = Location.CalculateDistance(here, destpos, DistanceUnits.Kilometers) * 1000;
+                    attraction_viewmodel.DistanceDbl = distM;
+                }
+
+                if (livedata.ContainsKey(parkelement.UniqueIdentifier))
+                {
+                    var ld = livedata[parkelement.UniqueIdentifier];
+                    attraction_viewmodel.LiveData = ld;
+                }
+
+                newView.Add(attraction_viewmodel);
+            }
+
+            var newViewFiltered = Filter(newView);
+            newViewFilteredAndOrdered = Sort(newViewFiltered);
+        });
+
+        if (!FreezeParkList)
         {
             Parks.SuspendCollectionChangeNotification();
             Parks.Clear();
             var parks = DataManager.Instance.BufferedParks.Select(x => x.Name).ToList();
             Parks.Add("Tous");
             Parks.AddItems(parks);
-            Parks.NotifyChanges();
             Parks.ResumeCollectionChangeNotification();
+            Parks.NotifyChanges();
+
             FreezeParkList = true;
             ParkPicker.SelectedIndex = DataManager.Instance.Configuration.FilterPark;
             FreezeParkList = false;
         }
 
-        var newView = new List<ParkItemView>();
-        foreach (var parkelement in staticdata)
-        {
-            ParkItemView attraction_viewmodel = new(this)
-            {
-                ParkElement = parkelement
-            };
-
-            var interestpoint = parkelement as InterestPoint;
-            if (interestpoint != null && currentPosition != null && currentPosition.HasLatitudeLongitude && interestpoint.Position != null)
-            {
-                Location here = new (currentPosition.Latitude, currentPosition.Longitude);
-                Location destpos = new (interestpoint.Position.Latitude, interestpoint.Position.Longitude);
-
-                var distM = Location.CalculateDistance(here, destpos, DistanceUnits.Kilometers) * 1000;
-                attraction_viewmodel.DistanceDbl = distM;
-            }
-
-            if (livedata.ContainsKey(parkelement.UniqueIdentifier))
-            {
-                var ld = livedata[parkelement.UniqueIdentifier];
-
-                attraction_viewmodel.LiveData = ld;
-            }   
-
-            newView.Add(attraction_viewmodel);
-        }
-
-        var newViewFiltered = Filter(newView);
-        var newViewFilteredAndOrdered = Sort(newViewFiltered);
-
         UpdateObservable(Attractions, newViewFilteredAndOrdered);
+
+        Console.WriteLine($"Sorted dynamic data in {(DateTime.Now - dt).TotalMilliseconds}ms.");
+
 
         IsRefreshing = false;
         OnPropertyChanged(nameof(IsRefreshing));
@@ -292,25 +303,6 @@ public partial class ListAttractions : ContentPage
 
     protected void UpdateObservable(FastObservableCollection<ParkItemView> view, IEnumerable<ParkItemView> list)
     {
-        /*HashSet<ParkElement> newlistAsHash = new(list.Select(x => x.ParkElement));
-        Dictionary<string, int> oldlistAsHash = new();
-
-        for(int i = 0; i < view.Count; i++)
-        {
-            var e = view[i];
-            
-            //remove nonexisting elements
-            if(!newlistAsHash.Contains(e))
-            {
-                view.RemoveAt(i);
-                i--;
-                return;
-            }
-
-            //modify existing element
-            view.Add(i);
-        }*/
-
         view.SuspendCollectionChangeNotification();
         view.Clear();
         foreach (var i in list)

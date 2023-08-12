@@ -58,7 +58,7 @@ public class ForegroundService
         if (intent.Action == "START_SERVICE")
         {
             //RegisterNotification();//Proceed to notify
-            //startForegroundService();
+            startForegroundService();
         }
         else if (intent.Action == "STOP_SERVICE")
         {
@@ -128,5 +128,4 @@ public class ForegroundService
         NotificationManager manager = (NotificationManager)MainActivity.ActivityCurrent.GetSystemService(Context.NotificationService);
         manager.Notify(NotificationId++, not.Build());
     }
-
 }

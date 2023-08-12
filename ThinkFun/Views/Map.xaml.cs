@@ -39,7 +39,7 @@ public partial class Map : ContentPage
         MapControl = new Mapsui.UI.Maui.MapControl();
         Content = MapControl;
 
-        MapControl.Map.Home = x => x.NavigateTo((new Position(48.8674, 2.7836)).ToMapsui(), 1);
+        MapControl.Map.Home = x => x.CenterOn((new Position(48.8674, 2.7836)).ToMapsui(), 1);
         MapControl.Map.Info += MapInfoAsk;
 
         await DrawGraph();
@@ -77,11 +77,11 @@ public partial class Map : ContentPage
         };
         MapControl.Map.Layers.Add(poslayer);
 
-        MapControl.Navigator.CenterOn((new Position(48.8674, 2.7836)).ToMapsui(), 1);
+        MapControl.Map.Navigator.CenterOn((new Position(48.8674, 2.7836)).ToMapsui(), 1);
         MapControl.Refresh();
     }
 
-    private async void MapInfoAsk(object sender, Mapsui.UI.MapInfoEventArgs e)
+    private async void MapInfoAsk(object sender, Mapsui.MapInfoEventArgs e)
     {
         var featureLabel = e.MapInfo.Feature?["ParkElement"] as ParkElement;
         if (featureLabel != null)

@@ -15,7 +15,7 @@
         </ScrollView>
         <ListView
             x:Name="AttractionList"
-            HasUnevenRows="True"
+            HasUnevenRows="False"
             IsVisible="{Binding VerboseDisplay}"
             IsPullToRefreshEnabled="True"
             IsRefreshing="{Binding IsRefreshing}"
@@ -121,7 +121,7 @@
                 x:Name="AttractionListCompact"
                 HasUnevenRows="False"
                 IsVisible="{Binding CompactDisplay}"
-                IsPullToRefreshEnabled="True"
+                IsPullToRefreshEnabled="False"
                 IsRefreshing="{Binding IsRefreshing}"
                 RowHeight="20"
                 >

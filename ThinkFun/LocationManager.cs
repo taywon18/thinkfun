@@ -5,6 +5,7 @@ namespace ThinkFun;
 public class LocationManager
 {
     public static LocationManager Instance { get; } = new LocationManager();
+    public bool IsListening { get => CrossGeolocator.Current.IsListening; }
 
     public bool Allowed = false;
     public int Retry = 0;
@@ -17,12 +18,17 @@ public class LocationManager
 
     private LocationManager()
     {
+        CrossGeolocator.Current.PositionChanged += CurrentPositionChanged;
     }
 
     public async Task StartListening()
     {
         await CrossGeolocator.Current.StartListeningAsync(TimeSpan.FromSeconds(0.2), 1, true);
-        CrossGeolocator.Current.PositionChanged += CurrentPositionChanged;
+    }
+
+    public async Task StopListening()
+    {
+        await CrossGeolocator.Current.StopListeningAsync();
     }
 
     private void CurrentPositionChanged(object sender, GeolocatorPlugin.Abstractions.PositionEventArgs e)
@@ -77,8 +83,14 @@ public class LocationManager
             return true;
 
         Retry++;
-        PermissionStatus status = await Permissions.CheckStatusAsync<Permissions.LocationAlways>();
-        if(status == PermissionStatus.Granted)
+
+        PermissionStatus status = default;
+        await MainThread.InvokeOnMainThreadAsync(async () =>
+        {
+            status = await Permissions.CheckStatusAsync<Permissions.LocationAlways>();
+        });
+
+        if (status == PermissionStatus.Granted)
         {
             Allowed = true;
             return true;
