@@ -1,45 +1,56 @@
-﻿using System;
+﻿using Microsoft.Maui.Controls.PlatformConfiguration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ThinkFun
+namespace ThinkFun;
+
+public class NotificationService
 {
-    public class NotificationService
+    static public NotificationService Instance { get; } = new NotificationService();
+
+#if ANDROID
+    Android.Content.Intent Intend;
+#endif
+
+    public bool IsWorking
     {
-        public static NotificationService Instance { get; } = new();
-        bool Inited = false;
-        #if ANDROID
-            Android.Content.Intent AndroidIntend = null;
-        #endif
-
-
-
-        public void Init()
+        get
         {
-            if(Inited) return;
-            Inited = true;
-
             #if ANDROID
-                AndroidIntend = new Android.Content.Intent(Android.App.Application.Context, typeof(ThinkFun.Platforms.Android.ForegroundService));
-                Android.App.Application.Context.StartForegroundService(AndroidIntend);
-                Console.WriteLine("Foreground service created.");
+                return Intend != null;
             #endif
+            throw new NotImplementedException();
         }
+    }
 
-        public void Stop()
-        {
-            #if ANDROID
-                Android.App.Application.Context.StopService(AndroidIntend);
-            #endif
-        }
+    public void StartWorkingBackground()
+    {
+#if ANDROID
+        if(Intend != null)
+            StopWorkingBackground();
 
-        public void Notify(string? title, string? content)
-        {
-            #if ANDROID
+        Intend = new Android.Content.Intent(Android.App.Application.Context, typeof(ThinkFun.Platforms.Android.ForegroundService));
+        Android.App.Application.Context.StartForegroundService(Intend);  
+#endif
+    }
+
+    public void StopWorkingBackground()
+    {
+#if ANDROID
+        Android.Content.Intent intent = new Android.Content.Intent(Android.App.Application.Context, typeof(ThinkFun.Platforms.Android.ForegroundService));
+            intent.SetAction("STOP_SERVICE");
+         MainActivity.ActivityCurrent.StartService(intent);
+         Intend = null;
+#endif
+    }
+
+    public void Notify(string? title, string? content)
+    {
+#if ANDROID
                 ThinkFun.Platforms.Android.ForegroundService.LastService.Notify(title, content);
-            #endif
-        }
+#endif
     }
 }

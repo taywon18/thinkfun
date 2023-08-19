@@ -22,7 +22,7 @@ namespace ThinkFun
 
         public bool IsBackgroundWatching
         {
-            get { return BackgroundManager.Instance.IsWorking; }
+            get { return NotificationService.Instance.IsWorking; }
         }
 
 
@@ -51,7 +51,9 @@ namespace ThinkFun
         {
             base.OnAppearing();
 
-            NotificationService.Instance.Init();
+            NotificationService.Instance.StopWorkingBackground();
+            OnPropertyChanged(nameof(IsBackgroundWatching));
+
 
             if (HaveDestination)
             {
@@ -78,15 +80,15 @@ namespace ThinkFun
             OnPropertyChanged(nameof(IsListeningLocation));
         }
 
-        private async void OnStartBackgroundListening(object sender, EventArgs e)
+        private void OnStartBackgroundListening(object sender, EventArgs e)
         {
-            BackgroundManager.Instance.StartWorkingBackground();
+            NotificationService.Instance.StartWorkingBackground();
             OnPropertyChanged(nameof(IsBackgroundWatching));
         }
 
-        private async void OnStopBackgroundListening(object sender, EventArgs e)
+        private void OnStopBackgroundListening(object sender, EventArgs e)
         {
-            BackgroundManager.Instance.StopWorkingBackground();
+            NotificationService.Instance.StopWorkingBackground();
             OnPropertyChanged(nameof(IsBackgroundWatching));
         }
 
