@@ -1,4 +1,5 @@
-﻿namespace ThinkFun.Model;
+﻿
+namespace ThinkFun.Model;
 
 public class Trip
 {

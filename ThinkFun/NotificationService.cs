@@ -21,7 +21,10 @@ public class NotificationService
         {
             #if ANDROID
                 return Intend != null;
+            #elif WINDOWS
+                return false; //TODO: Implement
             #endif
+
             throw new NotImplementedException();
         }
     }
