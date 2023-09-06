@@ -47,10 +47,10 @@ public class NotificationService
 #endif
     }
 
-    public void Notify(string? title, string? content)
+    public void Notify(string? title, string? content, string? icon = null)
     {
 #if ANDROID
-                ThinkFun.Platforms.Android.ForegroundService.LastService.Notify(title, content);
+                ThinkFun.Platforms.Android.ForegroundService.LastService.Notify(title, content, icon);
 #endif
     }
 }

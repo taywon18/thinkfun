@@ -28,6 +28,7 @@
                 Aspect="AspectFit"
                 WidthRequest="64"
                 HorizontalOptions="End"
+                Grid.Column="0"
                 Padding="5">
                 <ImageButton.Behaviors>
                     <toolkit:IconTintColorBehavior TintColor="White" />
@@ -41,6 +42,7 @@
                 Aspect="AspectFit"
                 WidthRequest="64"
                 HorizontalOptions="End"
+                Grid.Column="0"
                 Padding="5">
                 <ImageButton.Behaviors>
                     <toolkit:IconTintColorBehavior TintColor="Green" />
@@ -85,10 +87,10 @@
                 TextColor="Red"
                 HorizontalOptions="Center">
                 <Label.GestureRecognizers>
-                    <TapGestureRecognizer 
-                        Command="{Binding BuyMeACoffre}"/>
+                    <TapGestureRecognizer Tapped="Login_Tapped"/>
                 </Label.GestureRecognizers>
             </Label>
+            
             <Image 
                 Aspect="AspectFit"
                 Source="icon.png"
@@ -114,9 +116,11 @@
                 />
 
     <ShellContent 
-                Title="Evènements"
+                Title="Évènements"
+                Icon="clock.png"
                 IsVisible="{Binding HaveDestination}"
                 ContentTemplate="{DataTemplate views:EventList}"
+                Route="Events"
                 />
 
     <ShellContent 
@@ -152,8 +156,7 @@
                 TextColor="Green"
                 HorizontalOptions="Center">
                     <Label.GestureRecognizers>
-                        <TapGestureRecognizer 
-                        Command="{Binding BuyMeACoffre}"/>
+                        <TapGestureRecognizer Tapped="BuyMeACoffre_Tapped"/>
                     </Label.GestureRecognizers>
                 </Label>
 

@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
@@ -61,7 +61,7 @@ public partial class ListAttractions
 
         public string NameDisplayable
         {
-            get => ParkElement.Name ?? "Élément";
+            get => ParkElement.Name ?? "Ã‰lÃ©ment";
         }
 
         public string DescriptionDisplayable
@@ -90,9 +90,9 @@ public partial class ListAttractions
                             return "Ouvert";
                     }
                     else if (queue.Status == Model.Status.DOWN)
-                        return "Cassé :'(";
+                        return "ğŸ› ï¸";
                     else if (queue.Status == Model.Status.CLOSED)
-                        return "Fermé";
+                        return "ğŸšª";
                     else
                         return queue.Status.ToString();
                 }
