@@ -22,7 +22,7 @@ public class NotificationService
             #if ANDROID
                 return Intend != null;
             #endif
-            throw new NotImplementedException();
+            return false;
         }
     }
 

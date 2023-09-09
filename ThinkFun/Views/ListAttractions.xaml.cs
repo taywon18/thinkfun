@@ -92,7 +92,7 @@ public partial class ListAttractions
                     else if (queue.Status == Model.Status.DOWN)
                         return "🛠️";
                     else if (queue.Status == Model.Status.CLOSED)
-                        return "🚪";
+                        return "🔒";
                     else
                         return queue.Status.ToString();
                 }
@@ -381,5 +381,19 @@ public partial class ListAttractions
         FreezeParkList = true;
         await RefreshList();
         FreezeParkList = false;
+    }
+
+    private async void AttractionList_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+    {
+        ParkItemView item = e.SelectedItem as ParkItemView;
+        if (item == null)
+            return;
+
+        var senderlst = sender as ListView;
+        senderlst.SelectedItem = null;
+
+        var page = new AttractionDetail();
+        page.SetElement(item.ParkElement);
+        await Navigation.PushAsync(page);
     }
 }

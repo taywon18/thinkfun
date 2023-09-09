@@ -2,11 +2,23 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ThinkFun.Views.AttractionDetail"
-             Title="AttractionDetail">
+             Title="AttractionDetail"
+             
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
+             >
     <VerticalStackLayout>
         <Label 
-            Text="Welcome to .NET MAUI!"
+            Text="{Binding ElementName}"
             VerticalOptions="Center" 
-            HorizontalOptions="Center" />
+            HorizontalOptions="Start" 
+            FontSize="Large"/>
+
+        <Label 
+            Text="Une attraction sympa pour s'envoyer en l'air !"
+            VerticalOptions="Center" 
+            HorizontalOptions="End" />
+
+        <lvc:PieChart x:Name="crtPieEmojisSent"/>
+
     </VerticalStackLayout>
 </ContentPage>
