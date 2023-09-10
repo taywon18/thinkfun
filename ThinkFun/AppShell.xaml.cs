@@ -26,12 +26,6 @@ namespace ThinkFun
         }
 
 
-        public ICommand BuyMeACoffee
-        {
-            get;
-        }
-
-
         public AppShell()
         {
             InitializeComponent();
@@ -40,11 +34,7 @@ namespace ThinkFun
             /*Routing.RegisterRoute("//Destinations", typeof(ParkChoice));
             Routing.RegisterRoute("//Attractions", typeof(ListAttractions));
             Routing.RegisterRoute("//Map", typeof(Map));*/
-
-            BuyMeACoffee = new Command(async () =>
-            {
-                await Browser.Default.OpenAsync("https://buymeacoffee.com/taywon", BrowserLaunchMode.SystemPreferred);
-            });
+            Routing.RegisterRoute("//Login", typeof(LoginPage));
         }
 
         protected override async void OnAppearing()
@@ -92,5 +82,14 @@ namespace ThinkFun
             OnPropertyChanged(nameof(IsBackgroundWatching));
         }
 
+        private async void Login_Tapped(object sender, TappedEventArgs e)
+        {
+            await Navigation.PushModalAsync(new LoginPage());
+        }
+
+        private async void BuyMeACoffre_Tapped(object sender, TappedEventArgs e)
+        {
+            await Browser.Default.OpenAsync("https://buymeacoffee.com/taywon", BrowserLaunchMode.SystemPreferred);
+        }
     }
 }

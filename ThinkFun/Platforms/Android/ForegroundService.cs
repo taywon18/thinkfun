@@ -1,5 +1,6 @@
 ﻿using Android.App;
 using Android.Content;
+using Android.Graphics.Drawables;
 using Android.OS;
 using Android.Runtime;
 using AndroidX.Core.App;
@@ -114,7 +115,7 @@ public class ForegroundService
 
     }
 
-    public void Notify(string? title, string? content)
+    public void Notify(string? title, string? content, string? icon)
     {
         var not = new Notification.Builder(this, NOTIFICATION_CHANNEL_ID);
         not.SetSmallIcon(Resource.Drawable.abc_ab_share_pack_mtrl_alpha);
@@ -124,6 +125,13 @@ public class ForegroundService
 
         if (content != null)
             not.SetContentText(content);
+
+        if (icon != null)
+        {
+            /*var image = new Image { Source = icon };
+            not.SetSmallIcon(Drawable.i)*/
+        }
+            
 
         NotificationManager manager = (NotificationManager)MainActivity.ActivityCurrent.GetSystemService(Context.NotificationService);
         manager.Notify(NotificationId++, not.Build());

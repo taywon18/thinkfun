@@ -58,7 +58,7 @@ public class RichEvent
         }
     }
 
-    public Color Color
+    public Color Colorw
     {
         get
         {

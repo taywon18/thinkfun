@@ -19,6 +19,7 @@
             IsVisible="{Binding VerboseDisplay}"
             IsPullToRefreshEnabled="True"
             IsRefreshing="{Binding IsRefreshing}"
+            ItemSelected="AttractionList_ItemSelected"
             >
             <ListView.ItemTemplate>
                 <DataTemplate>
@@ -124,6 +125,7 @@
                 IsPullToRefreshEnabled="False"
                 IsRefreshing="{Binding IsRefreshing}"
                 RowHeight="20"
+                ItemSelected="AttractionList_ItemSelected"
                 >
             <ListView.ItemTemplate>
                 <DataTemplate>

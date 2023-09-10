@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
@@ -61,7 +61,7 @@ public partial class ListAttractions
 
         public string NameDisplayable
         {
-            get => ParkElement.Name ?? "Élément";
+            get => ParkElement.Name ?? "Ã‰lÃ©ment";
         }
 
         public string DescriptionDisplayable
@@ -90,9 +90,9 @@ public partial class ListAttractions
                             return "Ouvert";
                     }
                     else if (queue.Status == Model.Status.DOWN)
-                        return "Cassé :'(";
+                        return "ğŸ› ï¸";
                     else if (queue.Status == Model.Status.CLOSED)
-                        return "Fermé";
+                        return "ğŸ”’";
                     else
                         return queue.Status.ToString();
                 }
@@ -381,5 +381,19 @@ public partial class ListAttractions
         FreezeParkList = true;
         await RefreshList();
         FreezeParkList = false;
+    }
+
+    private async void AttractionList_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+    {
+        ParkItemView item = e.SelectedItem as ParkItemView;
+        if (item == null)
+            return;
+
+        var senderlst = sender as ListView;
+        senderlst.SelectedItem = null;
+
+        var page = new AttractionDetail();
+        page.SetElement(item.ParkElement);
+        await Navigation.PushAsync(page);
     }
 }
