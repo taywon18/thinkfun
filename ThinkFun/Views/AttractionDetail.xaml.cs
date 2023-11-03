@@ -23,15 +23,23 @@ public partial class AttractionDetail
 		}
 	}
 
-    public ISeries[] Series { get; set; }
-        = new ISeries[]
+    public ISeries[] Series { get; set; } =
+{
+        new ColumnSeries<int>
         {
-            new LineSeries<double>
-            {
-                Values = new double[] { 2, 1, 3, 5, 3, 4, 6 },
-                Fill = null
-            }
-        };
+            Values = new[] { 6, 3, 5, 7, 3, 4, 6, 3 },
+            Stroke = null,
+            MaxBarWidth = double.MaxValue,
+            IgnoresBarPosition = true
+        },
+        new ColumnSeries<int>
+        {
+            Values = new[] { 2, 4, 8, 9, 5, 2, 4, 7 },
+            Stroke = null,
+            MaxBarWidth = 30,
+            IgnoresBarPosition = true
+        }
+    };
 
     public AttractionDetail()
 	{
@@ -55,8 +63,8 @@ public partial class AttractionDetail
     {
         base.OnAppearing();
 
-        // Pie Chart Series
-        ObservableCollection<ISeries> SeriesChart = new ObservableCollection<ISeries>();
+        /*// Pie Chart Series
+        SeriesChart = new ObservableCollection<ISeries>();
 
         PieSeries<double?> aSeries;
 
@@ -71,6 +79,6 @@ public partial class AttractionDetail
         SeriesChart.Add(aSeries);
 
         // UI : Bind the chart
-        crtPieEmojisSent.Series = SeriesChart;
+        crtPieEmojisSent.Series = SeriesChart;*/
     }
 }

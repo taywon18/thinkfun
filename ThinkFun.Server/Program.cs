@@ -97,7 +97,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 
 
-
+ 
 
 DataStore.Instance.Configure(builder.Configuration.GetSection("Database")).Wait();
 DataManager.Instance.Configure(builder.Configuration.GetSection("Manager")).Wait();

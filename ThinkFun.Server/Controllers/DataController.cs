@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Buffers.Text;
 using ThinkFun.Model;
 
 namespace ThinkFun.Server.Controllers;
@@ -52,13 +53,17 @@ public class DataController
 
         if (from == null)
             return BadRequest();
+        from = Uri.UnescapeDataString(from);
         DateTime fromDate = DateTime.Parse(from);
 
         DateTime toDate;
+
+        if (to == null)
+            return BadRequest();
+        to = Uri.UnescapeDataString(to);
+
         if (to == "now")
             toDate = DateTime.Now;
-        else if (to == null)
-            return BadRequest();
         else
             toDate = DateTime.Parse(to);
 

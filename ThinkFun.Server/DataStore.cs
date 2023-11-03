@@ -14,12 +14,14 @@ public class DataStore
     private IMongoCollection<LiveData> LiveDataCollection;
     private IMongoCollection<Event> EventCollection;
     private IMongoCollection<User> UserCollection;
+    private IMongoCollection<HistoryArray> HistoryCollection;
 
     private string ConnectionString = "";
     private string DatabaseName = "";
     private string LiveDataCollectionName = "";
     private string EventCollectionName = "";
     private string UserCollectionName = "";
+    private string HistoryCollectionName = "";
 
     private string PasswordSalt = String.Empty; //TODO: load
 
@@ -48,6 +50,12 @@ public class DataStore
             return;
         }
 
+        if (conf[nameof(HistoryCollectionName)] == null)
+        {
+            LogManager.Error($"Cannot configure storage without database {nameof(HistoryCollectionName)} value.");
+            return;
+        }
+
         if (conf[nameof(EventCollectionName)] == null)
         {
             LogManager.Error($"Cannot configure storage without database {nameof(EventCollectionName)} value.");
@@ -65,6 +73,7 @@ public class DataStore
         LiveDataCollection = mongoDatabase.GetCollection<LiveData>(conf[nameof(LiveDataCollectionName)]);
         EventCollection = mongoDatabase.GetCollection<Event>(conf[nameof(EventCollectionName)]);
         UserCollection = mongoDatabase.GetCollection<User>(conf[nameof(UserCollectionName)]);
+        HistoryCollection = mongoDatabase.GetCollection<HistoryArray>(conf[nameof(HistoryCollectionName)]);
 
         await LiveDataCollection.Indexes.CreateOneAsync(
             Builders<LiveData>.IndexKeys.Descending(x => x.LastUpdate).Ascending(x => x.ParkElementId),
@@ -88,14 +97,18 @@ public class DataStore
     }
 
 
-    public async IAsyncEnumerable<LiveData> Get(string element, DateTime from, DateTime to, CancellationToken token = default)
+    public async IAsyncEnumerable<LiveData> Get(/*string destination, string park,*/ string element, DateTime from, DateTime to, CancellationToken token = default)
     {
         var res = await LiveDataCollection.Find(x 
-            => x.ParkElementId == element 
-            && x.LastUpdate >= from 
-            && x.LastUpdate < to
+            => x.ParkElementId == element
+            /*&& x.ParkId == park
+            && x.DestinationId == destination*/
+            && x.RoundedLastUpdate >= from 
+            && x.RoundedLastUpdate < to
             )
+            .SortBy(x => x.RoundedLastUpdate)
             .ToCursorAsync(token);
+
         while (await res.MoveNextAsync(token))
         {
             if(token.IsCancellationRequested) 
@@ -106,11 +119,28 @@ public class DataStore
         }
     }
 
+    public async Task<HistoryArray> GetHistory(string element, DateTime from, DateTime to, TimeSpan period, CancellationToken token = default)
+    {
+        throw new NotImplementedException();
+        
+        from = from.Ceil(period);
+        to = to.Ceil(period);
+
+
+        await foreach(var i in Get(element, from, to, token))
+        {
+
+        }
+    }
+
+
     public async Task Add(IEnumerable<LiveData> ld, CancellationToken token = default)
     {
         var lst = ld.ToList();
         if (lst.Count == 0)
             return;
+
+        long err = 0;
 
         try
         {
@@ -122,7 +152,10 @@ public class DataStore
         catch(MongoBulkWriteException bex)
         {
             //LogManager.Debug($"Skipping error for bulk mongodb insert {bex}");
+            err = bex.WriteErrors.Count;
         }
+
+        LogManager.Debug($"Skipping {err} ({((float)(err))/lst.Count*100}%) error for bulk mongodb insert.");
     }
 
     public async Task Add(Event e, CancellationToken tk = default)

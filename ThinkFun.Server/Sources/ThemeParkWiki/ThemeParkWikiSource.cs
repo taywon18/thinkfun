@@ -231,6 +231,7 @@ public class ThemeParkWikiSource
                     ParkId = livedata.parkId,
                     DestinationId = destination.UniqueIdentifier
                 };
+                livedata_model.Round();
 
                 if (livedata.status == "OPERATING")
                     livedata_model.Status = Status.OPENED;

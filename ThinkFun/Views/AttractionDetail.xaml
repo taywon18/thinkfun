@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ThinkFun.Views.AttractionDetail"
              Title="AttractionDetail"
-             
+            
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
              >
     <VerticalStackLayout>
@@ -18,7 +18,14 @@
             VerticalOptions="Center" 
             HorizontalOptions="End" />
 
-        <lvc:PieChart x:Name="crtPieEmojisSent"/>
+        <lvc:CartesianChart Series="{Binding Series}" HorizontalOptions="Fill" HeightRequest="300">
+
+        </lvc:CartesianChart>
+
+        <Label 
+            Text="G FÉ 1 BLAG LAUL"
+            VerticalOptions="Center" 
+            HorizontalOptions="End" />
 
     </VerticalStackLayout>
 </ContentPage>
