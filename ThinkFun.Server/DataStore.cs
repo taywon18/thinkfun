@@ -72,10 +72,10 @@ public class DataStore
 
         var mongoClient = new MongoClient(conf[nameof(ConnectionString)]);
         MongoDatabase = mongoClient.GetDatabase(conf[nameof(DatabaseName)]);
-        LiveDataCollection = mongoDatabase.GetCollection<LiveData>(conf[nameof(LiveDataCollectionName)]);
-        EventCollection = mongoDatabase.GetCollection<Event>(conf[nameof(EventCollectionName)]);
-        UserCollection = mongoDatabase.GetCollection<User>(conf[nameof(UserCollectionName)]);
-        HistoryCollection = mongoDatabase.GetCollection<HistoryArray>(conf[nameof(HistoryCollectionName)]);
+        LiveDataCollection = MongoDatabase.GetCollection<LiveData>(conf[nameof(LiveDataCollectionName)]);
+        EventCollection = MongoDatabase.GetCollection<Event>(conf[nameof(EventCollectionName)]);
+        UserCollection = MongoDatabase.GetCollection<User>(conf[nameof(UserCollectionName)]);
+        HistoryCollection = MongoDatabase.GetCollection<HistoryArray>(conf[nameof(HistoryCollectionName)]);
 
 
         try
