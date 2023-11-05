@@ -68,16 +68,32 @@ public class DataStore
         EventCollection = MongoDatabase.GetCollection<Event>(conf[nameof(EventCollectionName)]);
         UserCollection = MongoDatabase.GetCollection<User>(conf[nameof(UserCollectionName)]);
 
-        await LiveDataCollection.Indexes.CreateOneAsync(
-            Builders<LiveData>.IndexKeys.Descending(x => x.LastUpdate).Ascending(x => x.ParkElementId),
-            new CreateIndexOptions() { Unique = true},
+
+        try
+        {
+            await LiveDataCollection.Indexes.CreateOneAsync(
+                Builders<LiveData>.IndexKeys.Descending(x => x.LastUpdate).Ascending(x => x.ParkElementId),
+                new CreateIndexOptions() { Unique = true },
             tk);
+        } 
+        catch(Exception ex)
+        {
+            LogManager.Alert($"Index by update desc & parkelement asc creation failed: {ex}");
+        }
 
 
-        await UserCollection.Indexes.CreateOneAsync(
-            Builders<User>.IndexKeys.Descending(x => x.Name),
-            new CreateIndexOptions() { Unique = true },
+        try
+        {
+            await UserCollection.Indexes.CreateOneAsync(
+                Builders<User>.IndexKeys.Descending(x => x.Name),
+                new CreateIndexOptions() { Unique = true },
             tk);
+        }
+        catch (Exception ex)
+        {
+            LogManager.Alert($"Index by name desc creation failed: {ex}");
+        }
+
 
 
         if (conf[nameof(PasswordSalt)] != null)
