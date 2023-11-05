@@ -90,7 +90,11 @@ public class UserController
     [Authorize]
     public async Task<IActionResult> GetLocalUser()
     {
-        return Ok();
+        User? user = await DataStore.Instance.GetUserFromContext(HttpContext);
+        if (user == null)
+            return NotFound();
+
+        return Ok(user);
     }
 
     [HttpGet("Logout")]

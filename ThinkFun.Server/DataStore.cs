@@ -4,6 +4,7 @@ using DevOne.Security.Cryptography.BCrypt;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Generic;
+using System.Security.Claims;
 using ThinkFun.Model;
 using Wood;
 
@@ -11,6 +12,7 @@ public class DataStore
 {
     public static DataStore Instance { get;  } = new DataStore();
 
+    private IMongoDatabase MongoDatabase;
     private IMongoCollection<LiveData> LiveDataCollection;
     private IMongoCollection<Event> EventCollection;
     private IMongoCollection<User> UserCollection;
@@ -61,10 +63,10 @@ public class DataStore
         }
 
         var mongoClient = new MongoClient(conf[nameof(ConnectionString)]);
-        var mongoDatabase = mongoClient.GetDatabase(conf[nameof(DatabaseName)]);
-        LiveDataCollection = mongoDatabase.GetCollection<LiveData>(conf[nameof(LiveDataCollectionName)]);
-        EventCollection = mongoDatabase.GetCollection<Event>(conf[nameof(EventCollectionName)]);
-        UserCollection = mongoDatabase.GetCollection<User>(conf[nameof(UserCollectionName)]);
+        MongoDatabase = mongoClient.GetDatabase(conf[nameof(DatabaseName)]);
+        LiveDataCollection = MongoDatabase.GetCollection<LiveData>(conf[nameof(LiveDataCollectionName)]);
+        EventCollection = MongoDatabase.GetCollection<Event>(conf[nameof(EventCollectionName)]);
+        UserCollection = MongoDatabase.GetCollection<User>(conf[nameof(UserCollectionName)]);
 
         await LiveDataCollection.Indexes.CreateOneAsync(
             Builders<LiveData>.IndexKeys.Descending(x => x.LastUpdate).Ascending(x => x.ParkElementId),
@@ -84,6 +86,11 @@ public class DataStore
         }
         else
             LogManager.Alert($"No password salt defined... Use this one: {BCryptHelper.GenerateSalt(10)}");
+
+        if (await CheckIsConnected())
+            LogManager.Information($"Connection test ok");
+        else
+            LogManager.Alert("Connection test failed.");
 
     }
 
@@ -116,7 +123,7 @@ public class DataStore
         {
             await LiveDataCollection.InsertManyAsync(lst, new InsertManyOptions
             {
-                IsOrdered = false
+                IsOrdered = false,
             }, cancellationToken: token);
         }
         catch(MongoBulkWriteException bex)
@@ -167,6 +174,39 @@ public class DataStore
         var user = cursor.Current.First();
         user.PasswordHash = "";
 
+        return user;
+    }
+
+    public async Task<bool> CheckIsConnected(CancellationToken tk = default)
+    {
+        try
+        {
+            await MongoDatabase.RunCommandAsync((Command<BsonDocument>)"{ping:1}", cancellationToken:tk); ;
+
+            return true;
+        }
+        catch(Exception e)
+        {
+            return false;
+        }
+    }
+
+    public async Task<User?> GetUserFromContext(HttpContext ctx, CancellationToken tk = default)
+    {
+        if (ctx.User.Identity == null || ctx.User.Identity.Name == null)
+            return null;
+
+        var identity = ctx.User.Identity as ClaimsIdentity;
+        if (identity == null)
+            return null;
+
+        var claimid = identity.FindFirst(ClaimTypes.Name);
+        if (claimid == null)
+            return null;
+
+        string id = claimid.Value;
+
+        var user = await DataStore.Instance.GetUser(id, tk);
         return user;
     }
 }

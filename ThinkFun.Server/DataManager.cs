@@ -61,7 +61,7 @@ public class DataManager
             DestinationFilter.Clear();
             DestinationFilter = config.DestinationFilter;
 
-            LogManager.Information($"Ignoring {String.Join(",",DestinationFilter)}.");
+            LogManager.Information($"Current filter(s): {String.Join(",",DestinationFilter)}.");
             return;
         }
     }
