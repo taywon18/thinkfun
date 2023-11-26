@@ -21,9 +21,11 @@
             ClearButtonVisibility="WhileEditing"
         />
 
-        <Button
+        <Button x:Name="Validation"
             Text="Se connecter"
+            HorizontalOptions="Center"
             Command="{Binding LoginCommand}"
+            Clicked="Button_Clicked"
             />
 
     </VerticalStackLayout>

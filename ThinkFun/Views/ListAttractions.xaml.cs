@@ -92,7 +92,7 @@ public partial class ListAttractions
                     else if (queue.Status == Model.Status.DOWN)
                         return "🛠️";
                     else if (queue.Status == Model.Status.CLOSED)
-                        return "🔒";
+                        return "🚫";
                     else
                         return queue.Status.ToString();
                 }
@@ -189,12 +189,14 @@ public partial class ListAttractions
         FreezeParkList = true;
         InitializeComponent();
 
-        this.BindingContext = this;
         AttractionList.ItemsSource = Attractions;
         AttractionList.RefreshCommand = new Command(() => OnListRefresh());
         AttractionListCompact.ItemsSource = Attractions;
         AttractionListCompact.RefreshCommand = new Command(() => OnListRefresh());
         ParkPicker.ItemsSource = Parks;
+
+        this.BindingContext = this;
+
 
 
         UpdateTimer = Application.Current.Dispatcher.CreateTimer();
@@ -367,7 +369,7 @@ public partial class ListAttractions
         if(FilterPark > 0 && FilterPark - 1 < DataManager.Instance.BufferedParks.Count)
         {
             string parkId = DataManager.Instance.BufferedParks[FilterPark-1].UniqueIdentifier;
-            attraction = attraction.Where(x => x.ParkElement.ParentId == parkId);
+            attraction = attraction.Where(x => x.ParkElement.ParkId == parkId);
         }
 
         return attraction;

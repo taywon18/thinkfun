@@ -83,14 +83,28 @@
 
     <Shell.FlyoutHeader>
         <StackLayout>
-            <Label Text="❌ Mode non connecté"
+
+
+            <Label 
+                IsVisible="{Binding IsConnected, Converter={StaticResource InvertedBoolConverter}}"
+                Text="❌ Mode non connecté"
                 TextColor="Red"
                 HorizontalOptions="Center">
                 <Label.GestureRecognizers>
                     <TapGestureRecognizer Tapped="Login_Tapped"/>
                 </Label.GestureRecognizers>
             </Label>
-            
+
+            <Label 
+                IsVisible="{Binding IsConnected}"
+                Text="✔️ Mode connecté"
+                TextColor="Green"
+                HorizontalOptions="Center">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="Connected_Tapped"/>
+                </Label.GestureRecognizers>
+            </Label>
+
             <Image 
                 Aspect="AspectFit"
                 Source="icon.png"

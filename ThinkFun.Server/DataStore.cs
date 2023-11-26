@@ -4,6 +4,7 @@ using DevOne.Security.Cryptography.BCrypt;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Generic;
+using System.Data;
 using System.Security.Claims;
 using ThinkFun.Model;
 using Wood;
@@ -81,8 +82,13 @@ public class DataStore
         try
         {
             await LiveDataCollection.Indexes.CreateOneAsync(
-                Builders<LiveData>.IndexKeys.Descending(x => x.LastUpdate).Ascending(x => x.ParkElementId),
-                new CreateIndexOptions() { Unique = true },
+                Builders<LiveData>
+                .IndexKeys
+                .Descending(x => x.RoundedLastUpdate)
+                .Ascending(x => x.DestinationId)
+                .Ascending(x => x.ParkId)
+                .Ascending(x => x.ParkElementId)
+                , new CreateIndexOptions() { Unique = true },
             tk);
         } 
         catch(Exception ex)
@@ -120,12 +126,12 @@ public class DataStore
     }
 
 
-    public async IAsyncEnumerable<LiveData> Get(/*string destination, string park,*/ string element, DateTime from, DateTime to, CancellationToken token = default)
+    public async IAsyncEnumerable<LiveData> Get(string destination, string park, string element, DateTime from, DateTime to, CancellationToken token = default)
     {
         var res = await LiveDataCollection.Find(x 
             => x.ParkElementId == element
-            /*&& x.ParkId == park
-            && x.DestinationId == destination*/
+            && x.ParkId == park
+            && x.DestinationId == destination
             && x.RoundedLastUpdate >= from 
             && x.RoundedLastUpdate < to
             )
@@ -142,18 +148,90 @@ public class DataStore
         }
     }
 
-    public async Task<HistoryArray> GetHistory(string element, DateTime from, DateTime to, TimeSpan period, CancellationToken token = default)
+    public async Task<HistoryArray> GetHistory(string destination, string park, string element, DateTime from, TimeSpan duration, TimeSpan period, CancellationToken token = default)
     {
-        throw new NotImplementedException();
-        
+        return await GetHistory(destination, park, element, from, from + duration - TimeSpan.FromTicks(1), period, token);
+    }
+
+    public async Task<HistoryArray> GetHistory(string destination, string park, string element, DateTime from, DateTime to, TimeSpan period, CancellationToken token = default)
+    {        
         from = from.Ceil(period);
         to = to.Ceil(period);
+        var lst = await Get(destination, park, element, from, to, token).ToListAsync();
+        lst.OrderBy(x => x.RoundedLastUpdate);
 
-
-        await foreach(var i in Get(element, from, to, token))
+        HistoryArray ret = new()
         {
+            DestinationId = destination,
+            ParkId = park,
+            ParkElementId = element,
+            
+            Begin = from,
+            End = to,
+            Period = period            
+        };
 
+        int historyPtr = 0;
+        for(DateTime dt = from; dt < to; dt += period)
+        {
+            HistoryPoint hp = new()
+            {
+                Begin = dt,
+                Duration = period,
+            };
+
+            List<Queue> LdForThisHour = new();
+            while(true)
+            {
+                if (historyPtr >= lst.Count)
+                    break;
+
+                var current = lst[historyPtr];
+                if(current.RoundedLastUpdate < from)
+                {
+                    historyPtr++;
+                    continue;
+                }
+                    
+
+                if (current.RoundedLastUpdate > to)
+                    break;
+
+                historyPtr++; //for later use, do not reuse in this while
+
+                if (current.RoundedLastUpdate < dt || current.RoundedLastUpdate > dt + period)
+                    break;
+
+                if (current is not Queue)
+                    continue;
+
+                LdForThisHour.Add((Queue)current);
+            }
+
+            if (LdForThisHour.Count == 0)
+                continue;
+
+            var classicWaitingTimes = LdForThisHour.Where(x => x.ClassicWaitTime.HasValue).Select(x => x.ClassicWaitTime.Value.TotalMinutes);
+            var operatingTimes = LdForThisHour.Select(x => x.Status == Status.OPENED ? 1.0 : 0.0);
+
+            hp.SamplesCount = LdForThisHour.Count;
+            hp.FirstMesure = LdForThisHour.Min(x => x.RoundedLastUpdate);
+            hp.LastMesure = LdForThisHour.Max(x => x.RoundedLastUpdate);
+
+            if(classicWaitingTimes.Any())
+            {
+                hp.MinimumWaitingTime = TimeSpan.FromMinutes(classicWaitingTimes.Min());
+                hp.MaximumWaitingTime = TimeSpan.FromMinutes(classicWaitingTimes.Max());
+                hp.AverageWaitingTime = TimeSpan.FromMinutes(classicWaitingTimes.Average());
+            }
+
+            if (operatingTimes.Any())
+                hp.OperatingTime = operatingTimes.Average();
+
+            ret.Points.Add(hp);
         }
+
+        return ret;
     }
 
 

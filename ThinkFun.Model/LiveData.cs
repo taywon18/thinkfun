@@ -31,7 +31,7 @@ public abstract class LiveData
     public void Round(TimeSpan interval)
     {
         long ticks = (LastUpdate.Ticks / interval.Ticks);
-        RoundedLastUpdate = new DateTime(ticks * interval.Ticks);
+        RoundedLastUpdate = new DateTime(ticks * interval.Ticks, DateTimeKind.Utc);
         RoundScale = interval;
     }
 

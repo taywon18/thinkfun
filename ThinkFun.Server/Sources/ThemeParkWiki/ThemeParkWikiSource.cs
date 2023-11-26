@@ -113,7 +113,7 @@ public class ThemeParkWikiSource
         {
             UniqueIdentifier = park.id,
             Name = park.name,
-            ParentId = destinationid,
+            DestinationId = destinationid,
             ExternalIds = new Dictionary<string, string>
                     {
                         {ExternalIdKey,  park.name},
@@ -191,7 +191,8 @@ public class ThemeParkWikiSource
 
         attraction_as_model.Name = attraction_as_entity.name;
         attraction_as_model.UniqueIdentifier = attraction_as_entity.externalId ?? attraction_as_entity.id;
-        attraction_as_model.ParentId = park.UniqueIdentifier;
+        attraction_as_model.DestinationId = park.DestinationId;
+        attraction_as_model.ParkId = park.UniqueIdentifier;
 
         if (attraction_as_entity.id != null)
             attraction_as_model.ExternalIds[ExternalIdKey] = attraction_as_entity.id;

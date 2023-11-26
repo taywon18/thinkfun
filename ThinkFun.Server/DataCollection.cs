@@ -143,7 +143,7 @@ public class DataCollection
 
         lock (ParksByDestinations)
         {
-            string key = value.ParentId;
+            string key = value.DestinationId;
             var id = value.UniqueIdentifier;
             bool keyExists = ParksByDestinations.ContainsKey(key);
 
@@ -172,7 +172,7 @@ public class DataCollection
 
         lock (ParksByDestinations)
         {
-            string key = value.ParentId;
+            string key = value.ParkId;
             var id = value.UniqueIdentifier;
             bool keyExists = PointsByParks.ContainsKey(key);
 

@@ -36,6 +36,7 @@ public class UserController
         user.PasswordHash = ""; 
 
 
+
         ClaimsIdentity identity = new ClaimsIdentity(new List<Claim>()
         {
             new Claim(ClaimTypes.Name, user.Name),

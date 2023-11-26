@@ -1,5 +1,6 @@
 ﻿
 using System.ComponentModel;
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using ThinkFun.Model;
@@ -8,9 +9,11 @@ namespace ThinkFun;
 
 public class DataManager
 {
-    public static DataManager Instance = new DataManager();
+    public static DataManager Instance { get; } = new DataManager();
 
-    HttpClient Client;
+    public HttpClientHandler HttpClientHandler { get; }
+    public HttpClient Client { get; }
+
     public Configuration Configuration { get; private set; }
 
     List<Destination> AllDestinations = null;
@@ -156,18 +159,49 @@ public class DataManager
 
     private DataManager()
     {
-        Client = new()
+        HttpClientHandler = new()
+        {
+            UseCookies = true,
+            AllowAutoRedirect = true,
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+        };
+
+        Client = new(HttpClientHandler)
         {
             BaseAddress = new Uri("http://voie93quarts.fr:5000/")
         };
 
         LoadConfig();
+        LoadCookies();
+
 
         UpdateTime = Application.Current.Dispatcher.CreateTimer();
         UpdateTime.Interval = TimeSpan.FromSeconds(15);
         UpdateTime.Tick += async (s, e) => await Update();
         UpdateTime.IsRepeating = true;
         UpdateTime.Start();
+    }
+
+    private void LoadCookies()
+    {
+        string path = Path.Combine(FileSystem.Current.AppDataDirectory, "thinkfun.cookies");
+        try
+        {
+            using var fs = File.OpenRead(path);
+            var cookieCollection = JsonSerializer.Deserialize<CookieCollection>(fs);
+            HttpClientHandler.CookieContainer.Add(cookieCollection);
+        } catch(Exception ex)
+        {
+
+        }
+    }
+
+    public void SaveCookies()
+    {
+        string path = Path.Combine(FileSystem.Current.AppDataDirectory, "thinkfun.cookies");
+        using var fs = File.OpenWrite(path);
+        // Beware: GetAllCookies is available starting with .NET 6
+        JsonSerializer.Serialize(fs, HttpClientHandler.CookieContainer.GetAllCookies());
     }
 
     private void LoadConfig()

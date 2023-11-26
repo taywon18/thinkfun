@@ -25,6 +25,11 @@ namespace ThinkFun
             get { return NotificationService.Instance.IsWorking; }
         }
 
+        public bool IsConnected
+        {
+            get { return LoginManager.Instance.LastUser != null; }
+        }
+
 
         public AppShell()
         {
@@ -41,6 +46,8 @@ namespace ThinkFun
         {
             base.OnAppearing();
 
+            FlushConnectionState();
+
             NotificationService.Instance.StopWorkingBackground();
             OnPropertyChanged(nameof(IsBackgroundWatching));
 
@@ -48,9 +55,14 @@ namespace ThinkFun
             if (HaveDestination)
             {
                 await GoToAsync("//Attractions");
-                
             }
-                
+        }
+
+        public async void FlushConnectionState(bool actualize = true)
+        {
+            if(actualize)
+                await LoginManager.Instance.CheckIsConnected();
+            OnPropertyChanged(nameof(IsConnected));
         }
 
         public void FlushDestination()
@@ -84,7 +96,12 @@ namespace ThinkFun
 
         private async void Login_Tapped(object sender, TappedEventArgs e)
         {
-            await Navigation.PushModalAsync(new LoginPage());
+            await Navigation.PushAsync(new LoginPage());
+        }
+
+        private async void Connected_Tapped(object sender, TappedEventArgs e)
+        {
+            bool co = await LoginManager.Instance.CheckIsConnected();
         }
 
         private async void BuyMeACoffre_Tapped(object sender, TappedEventArgs e)

@@ -14,18 +14,12 @@
             FontSize="Large"/>
 
         <Label 
-            Text="Une attraction sympa pour s'envoyer en l'air !"
+            Text=""
             VerticalOptions="Center" 
             HorizontalOptions="End" />
 
-        <lvc:CartesianChart Series="{Binding Series}" HorizontalOptions="Fill" HeightRequest="300">
-
+        <lvc:CartesianChart Series="{Binding Series}" HorizontalOptions="Fill" HeightRequest="300" x:Name="HistoryChart" ZoomMode="PanX">
         </lvc:CartesianChart>
-
-        <Label 
-            Text="G FÉ 1 BLAG LAUL"
-            VerticalOptions="Center" 
-            HorizontalOptions="End" />
 
     </VerticalStackLayout>
 </ContentPage>

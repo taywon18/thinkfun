@@ -3,6 +3,9 @@ using LiveChartsCore;
 using System.ComponentModel;
 using ThinkFun.Model;
 using System.Collections.ObjectModel;
+using System.Net.Http.Json;
+using CommunityToolkit.Maui.Alerts;
+using LiveChartsCore.Defaults;
 
 namespace ThinkFun.Views;
 
@@ -24,8 +27,8 @@ public partial class AttractionDetail
 	}
 
     public ISeries[] Series { get; set; } =
-{
-        new ColumnSeries<int>
+    {
+        /*new ColumnSeries<int>
         {
             Values = new[] { 6, 3, 5, 7, 3, 4, 6, 3 },
             Stroke = null,
@@ -38,8 +41,10 @@ public partial class AttractionDetail
             Stroke = null,
             MaxBarWidth = 30,
             IgnoresBarPosition = true
-        }
+        }*/
     };
+
+
 
     public AttractionDetail()
 	{
@@ -47,16 +52,61 @@ public partial class AttractionDetail
         this.BindingContext = this;
     }
 
-	public void SetElement(ParkElement element)
+	public async void SetElement(ParkElement element)
 	{
         Element = element;
 
 		OnPropertyChanged(nameof(ElementName));
 
-		LiveCharts.Configure(config =>
-		{
+        /*HistoryChart.XAxes = new[]
+        {
+            new DateTimeAxis(TimeSpan.FromHours(1), x => $"{x.Hour}h")
+        };*/
 
-		});
+
+        try
+        {
+            var Details = await DataManager.Instance.Client.GetFromJsonAsync<ParkElementDetail>($"Data/GetParkElementDetail/{element.DestinationId}/{element.ParkId}/{element.UniqueIdentifier}");
+
+            LiveCharts.Configure(config =>
+            {
+
+            });
+
+
+            var yesterday = Details.LastDay.Points.Where(x => x.AverageWaitingTime.HasValue).Select(x => new ObservablePoint(x.Begin.Hour + 0.5, x.AverageWaitingTime.Value.TotalMinutes));
+            var lastweeksameday = Details.LastWeekSameDay.Points.Where(x => x.AverageWaitingTime.HasValue).Select(x => new ObservablePoint(x.Begin.Hour + 0.5, x.AverageWaitingTime.Value.TotalMinutes));
+
+            HistoryChart.XAxes.First().MinLimit = 8; 
+            HistoryChart.XAxes.First().MaxLimit = 22; 
+
+            Series = new ISeries[]
+            {
+                new ColumnSeries<ObservablePoint>
+                {
+                    Values = yesterday,
+                    Stroke = null,
+                    MaxBarWidth = double.MaxValue,
+                    IgnoresBarPosition = true
+                },
+
+                new ColumnSeries<ObservablePoint>
+                {
+                    Values = lastweeksameday,
+                    Stroke = null,
+                    MaxBarWidth = 30,
+                    IgnoresBarPosition = true
+                }
+            };
+
+            OnPropertyChanged(nameof(Series));
+
+        }catch(Exception ex)
+        {
+            var snackbar = Snackbar.Make($"Erreur serveur: {ex}");
+            await snackbar.Show();
+        }
+
     }
 
     protected override void OnAppearing()

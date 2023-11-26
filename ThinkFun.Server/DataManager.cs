@@ -101,6 +101,7 @@ public class DataManager
 
         LogManager.Debug($"Static data update took {updateTime}.");
     }
+
     public async Task UpdateLiveData()
     {
         var tks = new CancellationTokenSource();

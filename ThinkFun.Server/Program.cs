@@ -4,10 +4,13 @@ using Wood;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Globalization;
 
 LogManager.Instance.DefaultConfiguration();
 LogManager.Instance.Destinations.AddDestination(new Wood.Destination.FileDestination());
 LogManager.Information($"Wood log system started.");
+
+CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
 
 BsonClassMap.RegisterClassMap<ThinkFun.Model.User>(cm =>

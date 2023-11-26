@@ -7,7 +7,8 @@ public class ParkElement
     : Base
 {
     public string Name { get; set; } = "";
-    public string ParentId { get; set; } = "";
+    public string DestinationId { get; set; } = "";
+    public string ParkId { get; set; } = "";
 
     public override int GetHashCode()
     {
