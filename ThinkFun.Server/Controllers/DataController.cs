@@ -69,14 +69,35 @@ public class DataController
 
         DateTime now = DateTime.Now;
 
+        var todayTsk = DataStore.Instance.GetHistory(
+            destinationid,
+            parkid,
+            elementid,
+            (now).Date,
+            TimeSpan.FromDays(1),
+            TimeSpan.FromHours(1));
 
-        var lastDayTsk = DataStore.Instance.GetHistory(destinationid, parkid, elementid, (now - TimeSpan.FromDays(1)).Date, TimeSpan.FromDays(1), TimeSpan.FromHours(1));
-        var sameDayLastWeekTsk = DataStore.Instance.GetHistory(destinationid, parkid, elementid, (now - TimeSpan.FromDays(7)).Date, TimeSpan.FromDays(1), TimeSpan.FromHours(1));
+        var lastDayTsk = DataStore.Instance.GetHistory(
+            destinationid,
+            parkid,
+            elementid,
+            (now - TimeSpan.FromDays(1)).Date,
+            TimeSpan.FromDays(1),
+            TimeSpan.FromHours(1));
 
-        await Task.WhenAll(lastDayTsk, sameDayLastWeekTsk);
+        var sameDayLastWeekTsk = DataStore.Instance.GetHistory(
+            destinationid,
+            parkid,
+            elementid,
+            (now - TimeSpan.FromDays(7)).Date,
+            TimeSpan.FromDays(1),
+            TimeSpan.FromHours(1));
+
+        await Task.WhenAll(todayTsk,lastDayTsk, sameDayLastWeekTsk);
 
         ParkElementDetail ret = new()
         {
+            Today = todayTsk.Result
             LastDay = lastDayTsk.Result,
             LastWeekSameDay = sameDayLastWeekTsk.Result
         };

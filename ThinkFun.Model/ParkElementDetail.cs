@@ -8,6 +8,7 @@ namespace ThinkFun.Model;
 
 public class ParkElementDetail
 {
+    public HistoryArray? Today { get; set; } = null;
     public HistoryArray? LastDay { get; set; } = null;
     public HistoryArray? LastWeekSameDay { get; set; } = null;
 }
