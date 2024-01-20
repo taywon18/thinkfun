@@ -15,21 +15,24 @@
 
 
     <Shell.TitleView>
-        <Grid>
+        <Grid Padding="5" ColumnSpacing="5">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="64"/>
+                <ColumnDefinition Width="64"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition />
+            </Grid.RowDefinitions>
 
             <ImageButton
                 IsVisible="{Binding IsListeningLocation, Converter={StaticResource InvertedBoolConverter}}"
                 Source="location.png"
                 Clicked="OnStartLocationListening"
-                Aspect="AspectFit"
-                WidthRequest="64"
-                HorizontalOptions="End"
-                Grid.Column="0"
-                Padding="5">
+                Aspect="AspectFill"
+                Grid.Column="1">
                 <ImageButton.Behaviors>
                     <toolkit:IconTintColorBehavior TintColor="White" />
                 </ImageButton.Behaviors>
@@ -40,10 +43,7 @@
                 Source="location.png"
                 Clicked="OnStopLocationListening"
                 Aspect="AspectFit"
-                WidthRequest="64"
-                HorizontalOptions="End"
-                Grid.Column="0"
-                Padding="5">
+                Grid.Column="1">
                 <ImageButton.Behaviors>
                     <toolkit:IconTintColorBehavior TintColor="Green" />
                 </ImageButton.Behaviors>
@@ -54,10 +54,7 @@
                 Source="glasses.png"
                 Clicked="OnStartBackgroundListening"
                 Aspect="AspectFit"
-                WidthRequest="64"
-                HorizontalOptions="End"
-                Grid.Column="1"
-                Padding="5">
+                Grid.Column="2">
                 <ImageButton.Behaviors>
                     <toolkit:IconTintColorBehavior TintColor="White" />
                 </ImageButton.Behaviors>
@@ -68,16 +65,14 @@
                 Source="glasses.png"
                 Clicked="OnStopBackgroundListening"
                 Aspect="AspectFit"
-                WidthRequest="64"
-                HorizontalOptions="End"
-                Grid.Column="1"
-                Padding="5">
+                Grid.Column="2">
                 <ImageButton.Behaviors>
                     <toolkit:IconTintColorBehavior TintColor="Green" />
                 </ImageButton.Behaviors>
-            </ImageButton>
+            </ImageButton> 
 
         </Grid>
+
 
     </Shell.TitleView>
 

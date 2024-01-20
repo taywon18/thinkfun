@@ -18,7 +18,13 @@
             VerticalOptions="Center" 
             HorizontalOptions="End" />
 
-        <lvc:CartesianChart Series="{Binding Series}" HorizontalOptions="Fill" HeightRequest="300" x:Name="HistoryChart" ZoomMode="PanX">
+        <lvc:CartesianChart 
+            Series="{Binding Series}"
+            HorizontalOptions="Fill"
+            HeightRequest="300"
+            x:Name="HistoryChart"
+            ZoomMode="PanX"
+        >
         </lvc:CartesianChart>
 
     </VerticalStackLayout>
