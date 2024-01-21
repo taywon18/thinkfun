@@ -6,6 +6,9 @@ using System.Collections.ObjectModel;
 using System.Net.Http.Json;
 using CommunityToolkit.Maui.Alerts;
 using LiveChartsCore.Defaults;
+using LiveChartsCore.SkiaSharpView.Painting;
+using SkiaSharp;
+using LiveChartsCore.Kernel;
 
 namespace ThinkFun.Views;
 
@@ -27,6 +30,16 @@ public partial class AttractionDetail
 	}
 
     public ISeries[] Series { get; set; } = {};
+
+    public SolidColorPaint LegendTextPaint { get; set; } =
+    new SolidColorPaint
+    {
+        Color = new SKColor(50, 50, 50),
+        SKTypeface = SKTypeface.FromFamilyName("Courier New")
+    };
+
+    public SolidColorPaint LegendBackgroundPaint { get; set; } =
+        new SolidColorPaint(new SKColor(240, 240, 240));
 
 
 
@@ -60,17 +73,17 @@ public partial class AttractionDetail
             var today = Details.Today.Points
                 .Where(x => x.AverageWaitingTime.HasValue)
                 .Select(x => new ObservablePoint(x.Begin.Hour + 0.5, x.AverageWaitingTime.Value.TotalMinutes));
-            if (Details.LastMesure is not null)
+            if (Details.LastMesure is not null && Details.LastMesure.ClassicWaitTime.HasValue)
                 today = today.Append(
                     new ObservablePoint(
-                        Details.LastMesure.FirstMesure.Hour + Details.LastMesure.FirstMesure.Minute/60
-                        , Details.LastMesure.AverageWaitingTime.Value.TotalMinutes ));
+                        Details.LastMesure.LastUpdate.TimeOfDay.TotalHours
+                        , Details.LastMesure.ClassicWaitTime.Value.TotalMinutes));
 
             var yesterday = Details.LastDay.Points.Where(x => x.AverageWaitingTime.HasValue).Select(x => new ObservablePoint(x.Begin.Hour + 0.5, x.AverageWaitingTime.Value.TotalMinutes));
             var lastweeksameday = Details.LastWeekSameDay.Points.Where(x => x.AverageWaitingTime.HasValue).Select(x => new ObservablePoint(x.Begin.Hour + 0.5, x.AverageWaitingTime.Value.TotalMinutes));
 
             //HistoryChart.XAxes.First().MinLimit = 8; 
-            //HistoryChart.XAxes.First().MaxLimit = 22; 
+            //HistoryChart.XAxes.First().MaxLimit = 22
 
             Series = new ISeries[]
             {
@@ -79,7 +92,12 @@ public partial class AttractionDetail
                     Values = yesterday,
                     Stroke = null,
                     MaxBarWidth = double.MaxValue,
-                    IgnoresBarPosition = true
+                    IgnoresBarPosition = true,
+                    Name = "Hier",
+                    DataLabelsFormatter = (point) => point.Coordinate.PrimaryValue.ToString("F0") + "min",
+                    DataLabelsSize = -3,
+                    DataLabelsPaint = new SolidColorPaint(SKColors.White),
+                    DataLabelsPosition = LiveChartsCore.Measure.DataLabelsPosition.Middle,
                 },
 
                 new ColumnSeries<ObservablePoint>
@@ -87,13 +105,24 @@ public partial class AttractionDetail
                     Values = lastweeksameday,
                     Stroke = null,
                     MaxBarWidth = 30,
-                    IgnoresBarPosition = true
+                    IgnoresBarPosition = true,
+                    Name = "J-7",
+                    DataLabelsFormatter = (point) => point.Coordinate.PrimaryValue.ToString("F0") + "min",
+                    DataLabelsSize = 5,
+                    DataLabelsPaint = new SolidColorPaint(SKColors.Red),
+                    DataLabelsPosition = LiveChartsCore.Measure.DataLabelsPosition.Bottom,
                 },
 
                 new LineSeries<ObservablePoint>
                 {
                     Values = today,
-                    Stroke = null
+                    Stroke = null,
+                    Name = "Aujourd'hui",
+                    DataLabelsFormatter = (point) => point.Coordinate.PrimaryValue.ToString("F0") + "min",
+                    DataLabelsSize = 5,
+                    DataLabelsPaint = new SolidColorPaint(SKColors.Blue),
+                    DataLabelsPosition = LiveChartsCore.Measure.DataLabelsPosition.Top,
+
                 }
             };
 

@@ -24,6 +24,11 @@
             HeightRequest="300"
             x:Name="HistoryChart"
             ZoomMode="PanX"
+            LegendPosition="Bottom"
+            LegendBackgroundPaint="{Binding LedgendBackgroundPaint}"
+            LegendTextPaint="{Binding LegendTextPaint}"
+            LegendTextSize="16"
+            
         >
         </lvc:CartesianChart>
 
