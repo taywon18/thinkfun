@@ -148,6 +148,30 @@ public class DataStore
         }
     }
 
+    public async Task<Queue?> GetLastQueue(string destination, string park, string element, CancellationToken token = default)
+    {
+        var res = await LiveDataCollection.Find(x
+            => x.ParkElementId == element
+            && x.ParkId == park
+            && x.DestinationId == destination
+            )
+            .SortByDescending(x => x.RoundedLastUpdate)
+            .Limit(1)
+            .ToCursorAsync(token);
+
+        if (!await res.MoveNextAsync(token))
+            return null;
+
+        if (token.IsCancellationRequested)
+            return null;
+
+        var lst = res.Current.ToList();
+        if (lst.Count == 0)
+            return null;
+
+        return lst[0] as Queue;
+    }
+
     public async Task<HistoryArray> GetHistory(string destination, string park, string element, DateTime from, TimeSpan duration, TimeSpan period, CancellationToken token = default)
     {
         return await GetHistory(destination, park, element, from, from + duration - TimeSpan.FromTicks(1), period, token);

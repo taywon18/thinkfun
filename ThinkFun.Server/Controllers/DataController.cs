@@ -68,6 +68,8 @@ public class DataController
             return BadRequest();
 
         DateTime now = DateTime.Now;
+        
+        var lastMesureTsk = DataStore.Instance.GetLastQueue(destinationid, parkid, elementid);
 
         var todayTsk = DataStore.Instance.GetHistory(
             destinationid,
@@ -93,14 +95,18 @@ public class DataController
             TimeSpan.FromDays(1),
             TimeSpan.FromHours(1));
 
-        await Task.WhenAll(todayTsk,lastDayTsk, sameDayLastWeekTsk);
+        await Task.WhenAll(todayTsk,lastDayTsk, sameDayLastWeekTsk, lastMesureTsk);
 
         ParkElementDetail ret = new()
         {
-            Today = todayTsk.Result
+            Today = todayTsk.Result,
             LastDay = lastDayTsk.Result,
             LastWeekSameDay = sameDayLastWeekTsk.Result
         };
+
+        var lastMesure = lastMesureTsk.Result;
+        if (lastMesure is not null && lastMesure.LastUpdate.Date == DateTime.Now.Date)
+            ret.LastMesure = lastMesure;
 
         return Ok(ret);
     }

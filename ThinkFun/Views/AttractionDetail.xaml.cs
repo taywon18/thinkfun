@@ -57,12 +57,20 @@ public partial class AttractionDetail
 
             });
 
+            var today = Details.Today.Points
+                .Where(x => x.AverageWaitingTime.HasValue)
+                .Select(x => new ObservablePoint(x.Begin.Hour + 0.5, x.AverageWaitingTime.Value.TotalMinutes));
+            if (Details.LastMesure is not null)
+                today = today.Append(
+                    new ObservablePoint(
+                        Details.LastMesure.FirstMesure.Hour + Details.LastMesure.FirstMesure.Minute/60
+                        , Details.LastMesure.AverageWaitingTime.Value.TotalMinutes ));
 
             var yesterday = Details.LastDay.Points.Where(x => x.AverageWaitingTime.HasValue).Select(x => new ObservablePoint(x.Begin.Hour + 0.5, x.AverageWaitingTime.Value.TotalMinutes));
             var lastweeksameday = Details.LastWeekSameDay.Points.Where(x => x.AverageWaitingTime.HasValue).Select(x => new ObservablePoint(x.Begin.Hour + 0.5, x.AverageWaitingTime.Value.TotalMinutes));
 
-            HistoryChart.XAxes.First().MinLimit = 8; 
-            HistoryChart.XAxes.First().MaxLimit = 22; 
+            //HistoryChart.XAxes.First().MinLimit = 8; 
+            //HistoryChart.XAxes.First().MaxLimit = 22; 
 
             Series = new ISeries[]
             {
@@ -80,6 +88,12 @@ public partial class AttractionDetail
                     Stroke = null,
                     MaxBarWidth = 30,
                     IgnoresBarPosition = true
+                },
+
+                new LineSeries<ObservablePoint>
+                {
+                    Values = today,
+                    Stroke = null
                 }
             };
 
