@@ -70,6 +70,8 @@ public partial class AttractionDetail
 
             });
 
+            HistoryChart.EasingFunction = null;
+
             var today = Details.Today.Points
                 .Where(x => x.AverageWaitingTime.HasValue)
                 .Select(x => new ObservablePoint(x.Begin.Hour + 0.5, x.AverageWaitingTime.Value.TotalMinutes));

@@ -27,8 +27,7 @@
             LegendPosition="Bottom"
             LegendBackgroundPaint="{Binding LedgendBackgroundPaint}"
             LegendTextPaint="{Binding LegendTextPaint}"
-            LegendTextSize="16"
-            
+            LegendTextSize="16"            
         >
         </lvc:CartesianChart>
 
