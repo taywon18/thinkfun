@@ -83,15 +83,13 @@ public class DataManager
         FlushLiveDataTimer.Enabled = true;
     }
 
-    public async Task UpdateStaticData()
+    public async Task UpdateStaticData(CancellationToken tk = default)
     {
-        var tks = new CancellationTokenSource();
-
         DateTime before = DateTime.Now;
         foreach (var source in sources)
             try
             {
-                await source.UpdateStaticData(Data, tks.Token);
+                await source.UpdateStaticData(Data, tk);
             }
             catch(Exception e)
             {
@@ -102,15 +100,13 @@ public class DataManager
         LogManager.Debug($"Static data update took {updateTime}.");
     }
 
-    public async Task UpdateLiveData()
+    public async Task UpdateLiveData(CancellationToken tk = default)
     {
-        var tks = new CancellationTokenSource();
-
         DateTime before = DateTime.Now;
         foreach (var source in sources)
             try
             {
-                await source.UpdateLiveData(Data, tks.Token);
+                await source.UpdateLiveData(Data, tk);
             }
             catch (Exception e)
             {

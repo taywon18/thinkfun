@@ -1,6 +1,4 @@
-﻿
-using System.ComponentModel;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using ThinkFun.Model;
@@ -9,6 +7,11 @@ namespace ThinkFun;
 
 public class DataManager
 {
+    const string API_DATA_GET_DESTINATIONS = "Data/GetDestinations";
+    const string API_DATA_DESTINATION_GET_STATIC_DATA = "Data/GetDestinationStaticData/";
+    const string API_DATA_DESTINATION_GET_LIVE_DATA = "Data/GetDestinationLiveData/";
+    const string API_DATA_DESTINATION_GET_LAST_EVENTS = "Data/GetLastEvents/";
+
     public static DataManager Instance { get; } = new DataManager();
 
     public HttpClientHandler HttpClientHandler { get; }
@@ -266,7 +269,14 @@ public class DataManager
 
     public async Task FlushDestinations(CancellationToken tk = default)
     {
-        AllDestinations = await Client.GetFromJsonAsync<List<Destination>>("Data/GetDestinations", tk);
+        try 
+        {
+            AllDestinations = await Client.GetFromJsonAsync<List<Destination>>(API_DATA_GET_DESTINATIONS, tk);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
     }
 
     //todo: Optimize -_-'
@@ -303,7 +313,7 @@ public class DataManager
 
         try
         {
-            var static_data = await Client.GetFromJsonAsync<StaticDestinationData>("Data/GetDestinationStaticData/" + dest, tk);
+            var static_data = await Client.GetFromJsonAsync<StaticDestinationData>(API_DATA_DESTINATION_GET_STATIC_DATA + dest, tk);
 
             lock (Parks)
             {
@@ -353,7 +363,7 @@ public class DataManager
 
         try
         {
-            var live_data = await Client.GetFromJsonAsync<LiveDestinationData>("Data/GetDestinationLiveData/" + dest, tk);
+            var live_data = await Client.GetFromJsonAsync<LiveDestinationData>(API_DATA_DESTINATION_GET_LIVE_DATA + dest, tk);
             lock (LiveDatas)
             {
                 LiveDatas.Clear();
@@ -378,7 +388,7 @@ public class DataManager
 
         try
         {
-            var events_data = await Client.GetFromJsonAsync<EventsDestinationData>("Data/GetLastEvents/" + dest, tk);
+            var events_data = await Client.GetFromJsonAsync<EventsDestinationData>(API_DATA_DESTINATION_GET_LAST_EVENTS + dest, tk);
             TryPush(events_data.StatusEvents);
         }
         catch (Exception ex)

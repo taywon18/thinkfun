@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Net.Http.Json;
 using ThinkFun.Model;
 
 namespace ThinkFun;
 
 public class LoginManager
 {
+    const string API_USER_GETLOCALUSER = "User/GetLocalUser";
+    const string API_USER_LOGIN = "User/Login";
+
     public static LoginManager Instance { get; } = new LoginManager();
     private HttpClient Client
     {
@@ -23,7 +20,7 @@ public class LoginManager
     {
         try
         {
-            var user = await Client.GetFromJsonAsync<Model.User>("User/GetLocalUser", tk);
+            var user = await Client.GetFromJsonAsync<Model.User>(API_USER_GETLOCALUSER, tk);
 
             LastUser = user;
             DataManager.Instance.SaveCookies();
@@ -39,7 +36,7 @@ public class LoginManager
     {
         try
         {
-            var ret = await Client.PostAsJsonAsync<Model.LoginRequest>("User/Login", new LoginRequest
+            var ret = await Client.PostAsJsonAsync<Model.LoginRequest>(API_USER_LOGIN, new LoginRequest
             {
                 Name = name,
                 Password = password

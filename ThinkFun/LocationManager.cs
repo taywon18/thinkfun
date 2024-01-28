@@ -4,17 +4,19 @@ namespace ThinkFun;
 
 public class LocationManager
 {
+    const double REFRESHING_CONTINUOUS_TIME_SECONDS = 0.2;
+    const double REFRESHING_DEFAULT_MAX_TIME_BUFFERED_SECONDS = 60;
+    const double REFRESHING_DEFAULT_MAX_TIME_UNBUFFERED_SECONDS = 5;
+
     public static LocationManager Instance { get; } = new LocationManager();
     public bool IsListening { get => CrossGeolocator.Current.IsListening; }
-
-    public bool Allowed = false;
-    public int Retry = 0;
 
     private Mutex Mutex; //= new Mutex();
 
     GeolocatorPlugin.Abstractions.Position? LastPosition = null;
-    
     DateTime LastPositionUpdated = DateTime.MinValue;
+    public bool Allowed = false;
+    public int Retry = 0;
 
     private LocationManager()
     {
@@ -23,7 +25,7 @@ public class LocationManager
 
     public async Task StartListening()
     {
-        await CrossGeolocator.Current.StartListeningAsync(TimeSpan.FromSeconds(0.2), 1, true);
+        await CrossGeolocator.Current.StartListeningAsync(TimeSpan.FromSeconds(REFRESHING_CONTINUOUS_TIME_SECONDS), 1, true);
     }
 
     public async Task StopListening()
@@ -40,7 +42,7 @@ public class LocationManager
     public async Task<GeolocatorPlugin.Abstractions.Position?> GetPositionBuffered(TimeSpan? maxtime = null, CancellationToken tk = default)
     {
         if (!maxtime.HasValue)
-            maxtime = TimeSpan.FromSeconds(60);
+            maxtime = TimeSpan.FromSeconds(REFRESHING_DEFAULT_MAX_TIME_BUFFERED_SECONDS);
 
         var elapsed = DateTime.Now - LastPositionUpdated;
         if (LastPosition != null && elapsed <= maxtime)
@@ -61,7 +63,17 @@ public class LocationManager
         CrossGeolocator.Current.DesiredAccuracy = 100;
 
         Mutex?.ReleaseMutex();
-        var ret =  await CrossGeolocator.Current.GetPositionAsync(TimeSpan.FromSeconds(5), tk, true);
+
+        GeolocatorPlugin.Abstractions.Position ret = null;
+        try
+        {
+            ret = await CrossGeolocator.Current.GetPositionAsync(TimeSpan.FromSeconds(REFRESHING_DEFAULT_MAX_TIME_UNBUFFERED_SECONDS), tk, true);
+        } 
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            return null;
+        }
 
         Mutex?.WaitOne();
         if (ret.HasLatitudeLongitude)
