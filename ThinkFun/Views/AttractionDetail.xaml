@@ -12,6 +12,7 @@
             VerticalOptions="Center" 
             HorizontalOptions="Start" 
             FontSize="Large"/>
+        
 
         <Label 
             Text=""
@@ -30,6 +31,9 @@
             LegendTextSize="16"            
         >
         </lvc:CartesianChart>
+        
+        
+        
 
     </VerticalStackLayout>
 </ContentPage>

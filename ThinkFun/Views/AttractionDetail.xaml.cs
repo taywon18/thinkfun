@@ -35,11 +35,11 @@ public partial class AttractionDetail
     new SolidColorPaint
     {
         Color = new SKColor(50, 50, 50),
-        SKTypeface = SKTypeface.FromFamilyName("Courier New")
+        //SKTypeface = SKTypeface.FromFamilyName("Courier New")
     };
 
     public SolidColorPaint LegendBackgroundPaint { get; set; } =
-        new SolidColorPaint(new SKColor(240, 240, 240));
+        new SolidColorPaint( new SKColor(240, 240, 240));
 
 
 
@@ -71,6 +71,7 @@ public partial class AttractionDetail
             });
 
             HistoryChart.EasingFunction = null;
+            HistoryChart.ZoomMode = LiveChartsCore.Measure.ZoomAndPanMode.None;
 
             var today = Details.Today.Points
                 .Where(x => x.AverageWaitingTime.HasValue)
@@ -97,7 +98,7 @@ public partial class AttractionDetail
                     IgnoresBarPosition = true,
                     Name = "Hier",
                     DataLabelsFormatter = (point) => point.Coordinate.PrimaryValue.ToString("F0") + "min",
-                    DataLabelsSize = -3,
+                    DataLabelsSize = 8,
                     DataLabelsPaint = new SolidColorPaint(SKColors.White),
                     DataLabelsPosition = LiveChartsCore.Measure.DataLabelsPosition.Middle,
                 },
@@ -106,7 +107,7 @@ public partial class AttractionDetail
                 {
                     Values = lastweeksameday,
                     Stroke = null,
-                    MaxBarWidth = 30,
+                    MaxBarWidth = 8,
                     IgnoresBarPosition = true,
                     Name = "J-7",
                     DataLabelsFormatter = (point) => point.Coordinate.PrimaryValue.ToString("F0") + "min",
@@ -121,7 +122,7 @@ public partial class AttractionDetail
                     Stroke = null,
                     Name = "Aujourd'hui",
                     DataLabelsFormatter = (point) => point.Coordinate.PrimaryValue.ToString("F0") + "min",
-                    DataLabelsSize = 5,
+                    DataLabelsSize = 8,
                     DataLabelsPaint = new SolidColorPaint(SKColors.Blue),
                     DataLabelsPosition = LiveChartsCore.Measure.DataLabelsPosition.Top,
 
